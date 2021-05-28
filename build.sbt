@@ -64,8 +64,8 @@ developers in ThisBuild := List(Developer(id="hagay3", name="Hagai Ovadia", emai
 
 lazy val commonSettings = Seq(
   organization := "io.github.hagay3",
-  crossScalaVersions := Seq("2.12.13", "2.13.6"),
-  scalaVersion := "2.12.13",
+  crossScalaVersions := Seq("2.12.14", "2.13.6"),
+  scalaVersion := "2.12.14",
   publishTo := {
     val nexus = "https://s01.oss.sonatype.org/"
     if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
