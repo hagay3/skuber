@@ -2,7 +2,7 @@ import xerial.sbt.Sonatype._
 resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases/"
 
 val scala12Version = "2.12.13"
-val scala13Version = "2.13.6"
+val scala13Version = "2.13.8"
 val currentScalaVersion = scala13Version
 val supportedScalaVersion = Seq(scala12Version, scala13Version)
 
