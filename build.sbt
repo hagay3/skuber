@@ -40,8 +40,8 @@ val logback = "ch.qos.logback" % "logback-classic" % "1.2.11" % Runtime
 val playJson = "com.typesafe.play" %% "play-json" % "2.9.2"
 val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.3"
 
-val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.233"
-val awsJavaSdkSts = "com.amazonaws" % "aws-java-sdk-sts" % "1.12.233"
+val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.261"
+val awsJavaSdkSts = "com.amazonaws" % "aws-java-sdk-sts" % "1.12.261"
 val apacheCommonsLogging = "commons-logging" % "commons-logging" % "1.2"
 
 // Need Java 8 or later as the java.time package is used to represent K8S timestamps
