@@ -20,7 +20,7 @@ env:
 jobs:
   build:
     concurrency:
-      group: ${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
       cancel-in-progress: true
     name: Build and Test
     strategy:
@@ -69,7 +69,7 @@ jobs:
 
   publish:
     concurrency:
-      group: ${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
       cancel-in-progress: true
     name: Publish Artifacts
     needs: [build]
@@ -142,7 +142,7 @@ jobs:
 
   integration-kubernetes-v1-19:
     concurrency:
-      group: ${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
       cancel-in-progress: true
     name: integration-kubernetes-v1-19
     strategy:
@@ -168,7 +168,7 @@ jobs:
 
   integration-kubernetes-v1-20:
     concurrency:
-      group: ${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
       cancel-in-progress: true
     name: integration-kubernetes-v1-20
     strategy:
@@ -194,7 +194,7 @@ jobs:
 
   integration-kubernetes-v1-21:
     concurrency:
-      group: ${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
       cancel-in-progress: true
     name: integration-kubernetes-v1-21
     strategy:
@@ -220,7 +220,7 @@ jobs:
 
   integration-kubernetes-v1-22:
     concurrency:
-      group: ${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
       cancel-in-progress: true
     name: integration-kubernetes-v1-22
     strategy:
@@ -246,7 +246,7 @@ jobs:
 
   integration-kubernetes-v1-23:
     concurrency:
-      group: ${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
       cancel-in-progress: true
     name: integration-kubernetes-v1-23
     strategy:
@@ -272,7 +272,7 @@ jobs:
 
   integration-kubernetes-v1-24:
     concurrency:
-      group: ${{ github.ref }}
+      group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
       cancel-in-progress: true
     name: integration-kubernetes-v1-24
     strategy:
