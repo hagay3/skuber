@@ -19,6 +19,9 @@ env:
 
 jobs:
   build:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     name: Build and Test
     strategy:
       fail-fast: false
@@ -65,6 +68,9 @@ jobs:
           path: targets.tar
 
   publish:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     name: Publish Artifacts
     needs: [build]
     if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
@@ -135,6 +141,9 @@ jobs:
         run: sbt ++${{ matrix.scala }} ci-release
 
   integration-kubernetes-v1-19:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     name: integration-kubernetes-v1-19
     strategy:
       matrix:
@@ -158,6 +167,9 @@ jobs:
       - run: 'sbt ++${{ matrix.scala }} "it:testOnly "'
 
   integration-kubernetes-v1-20:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     name: integration-kubernetes-v1-20
     strategy:
       matrix:
@@ -181,6 +193,9 @@ jobs:
       - run: 'sbt ++${{ matrix.scala }} "it:testOnly "'
 
   integration-kubernetes-v1-21:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     name: integration-kubernetes-v1-21
     strategy:
       matrix:
@@ -204,6 +219,9 @@ jobs:
       - run: 'sbt ++${{ matrix.scala }} "it:testOnly "'
 
   integration-kubernetes-v1-22:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     name: integration-kubernetes-v1-22
     strategy:
       matrix:
@@ -227,6 +245,9 @@ jobs:
       - run: 'sbt ++${{ matrix.scala }} "it:testOnly * -- -l CustomResourceTag"'
 
   integration-kubernetes-v1-23:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     name: integration-kubernetes-v1-23
     strategy:
       matrix:
@@ -250,6 +271,9 @@ jobs:
       - run: 'sbt ++${{ matrix.scala }} "it:testOnly * -- -l CustomResourceTag"'
 
   integration-kubernetes-v1-24:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     name: integration-kubernetes-v1-24
     strategy:
       matrix:
@@ -271,7 +295,3 @@ jobs:
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
       - run: 'sbt ++${{ matrix.scala }} "it:testOnly * -- -l CustomResourceTag"'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
