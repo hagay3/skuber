@@ -9,7 +9,7 @@ name: Continuous Integration
 
 on:
   pull_request:
-    
+
   push:
     branches: ['**']
     tags: [v*]
@@ -20,6 +20,9 @@ env:
 jobs:
   build:
     name: Build and Test
+    concurrency:
+      group: ${{ steps.jobs.outputs.job_id }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
@@ -28,6 +31,13 @@ jobs:
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Get Current Job Log URL
+        uses: Tiryoh/gha-jobid-action@v0
+        id: jobs
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          job_name: @@JOB_NAME@@
+          per_page: 30
       - name: Checkout current branch (full)
         uses: actions/checkout@v2
         with:
@@ -66,6 +76,9 @@ jobs:
 
   publish:
     name: Publish Artifacts
+    concurrency:
+      group: ${{ steps.jobs.outputs.job_id }}-${{ github.ref }}
+      cancel-in-progress: true
     needs: [build]
     if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
     strategy:
@@ -136,6 +149,9 @@ jobs:
 
   integration-kubernetes-v1-19:
     name: integration-kubernetes-v1-19
+    concurrency:
+      group: ${{ steps.jobs.outputs.job_id }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -159,6 +175,9 @@ jobs:
 
   integration-kubernetes-v1-20:
     name: integration-kubernetes-v1-20
+    concurrency:
+      group: ${{ steps.jobs.outputs.job_id }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -182,6 +201,9 @@ jobs:
 
   integration-kubernetes-v1-21:
     name: integration-kubernetes-v1-21
+    concurrency:
+      group: ${{ steps.jobs.outputs.job_id }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -205,6 +227,9 @@ jobs:
 
   integration-kubernetes-v1-22:
     name: integration-kubernetes-v1-22
+    concurrency:
+      group: ${{ steps.jobs.outputs.job_id }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -228,6 +253,9 @@ jobs:
 
   integration-kubernetes-v1-23:
     name: integration-kubernetes-v1-23
+    concurrency:
+      group: ${{ steps.jobs.outputs.job_id }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -251,6 +279,9 @@ jobs:
 
   integration-kubernetes-v1-24:
     name: integration-kubernetes-v1-24
+    concurrency:
+      group: ${{ steps.jobs.outputs.job_id }}-${{ github.ref }}
+      cancel-in-progress: true
     strategy:
       matrix:
         os: [ubuntu-latest]
