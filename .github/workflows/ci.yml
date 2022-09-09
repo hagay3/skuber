@@ -7,9 +7,13 @@
 
 name: Continuous Integration
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
-    
+
   push:
     branches: ['**']
     tags: [v*]
