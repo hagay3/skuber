@@ -36,7 +36,7 @@ jobs:
         id: jobs
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          job_name: @@JOB_NAME@@
+          job_name: ${{ github.job }
           per_page: 30
       - name: Checkout current branch (full)
         uses: actions/checkout@v2
