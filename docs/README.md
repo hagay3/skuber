@@ -996,3 +996,10 @@ Equally it is straightforward to do the reverse and generate a Play Json value f
 ```scala
 val json = Json.toJson(deployment)
 ```
+
+## OpenAPI
+
+```scala
+sbt openapiCodegen
+```
+https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json

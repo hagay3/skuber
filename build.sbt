@@ -1,6 +1,7 @@
 import sbtassembly.AssemblyKeys.assembly
 import sbtassembly.{MergeStrategy, PathList}
 import xerial.sbt.Sonatype._
+
 resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases/"
 
 val scala12Version = "2.12.13"
@@ -183,8 +184,10 @@ lazy val skuber = (project in file("client"))
     crossScalaVersions := supportedScalaVersion,
     skuberSettings,
     Defaults.itSettings,
-    libraryDependencies ++= Seq(scalaTest % "it", playJson)
-  )
+    libraryDependencies ++= Seq(scalaTest % "it", playJson),
+    openapiTargetLanguage := Language.Scala,
+    openapiSpec :=(Compile / resourceDirectory).value / "openapi.spec.json"
+  ).enablePlugins(OpenApiSchema)
 
 
 lazy val examples = (project in file("examples"))
