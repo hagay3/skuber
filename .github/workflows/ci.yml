@@ -24,7 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        scala: [2.12.13, 2.13.6, 3.1.3]
+        scala: [2.12.13, 2.13.6, 3.2.0]
         java: [adopt@1.8]
     runs-on: ${{ matrix.os }}
     steps:
@@ -117,12 +117,12 @@ jobs:
           tar xf targets.tar
           rm targets.tar
 
-      - name: Download target directories (3.1.3)
+      - name: Download target directories (3.2.0)
         uses: actions/download-artifact@v2
         with:
-          name: target-${{ matrix.os }}-3.1.3-${{ matrix.java }}
+          name: target-${{ matrix.os }}-3.2.0-${{ matrix.java }}
 
-      - name: Inflate target directories (3.1.3)
+      - name: Inflate target directories (3.2.0)
         run: |
           tar xf targets.tar
           rm targets.tar
@@ -148,7 +148,7 @@ jobs:
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
-        uses: manusa/actions-setup-minikube@v2.6.0
+        uses: manusa/actions-setup-minikube@v2.7.2
         with:
           minikube version: v1.25.2
           kubernetes version: v1.19.6
@@ -171,7 +171,7 @@ jobs:
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
-        uses: manusa/actions-setup-minikube@v2.6.0
+        uses: manusa/actions-setup-minikube@v2.7.2
         with:
           minikube version: v1.25.2
           kubernetes version: v1.20.11
@@ -194,7 +194,7 @@ jobs:
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
-        uses: manusa/actions-setup-minikube@v2.6.0
+        uses: manusa/actions-setup-minikube@v2.7.2
         with:
           minikube version: v1.25.2
           kubernetes version: v1.21.5
@@ -217,7 +217,7 @@ jobs:
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
-        uses: manusa/actions-setup-minikube@v2.6.0
+        uses: manusa/actions-setup-minikube@v2.7.2
         with:
           minikube version: v1.25.2
           kubernetes version: v1.22.9
@@ -240,7 +240,7 @@ jobs:
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
-        uses: manusa/actions-setup-minikube@v2.6.0
+        uses: manusa/actions-setup-minikube@v2.7.2
         with:
           minikube version: v1.25.2
           kubernetes version: v1.23.6
@@ -263,7 +263,7 @@ jobs:
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
-        uses: manusa/actions-setup-minikube@v2.6.0
+        uses: manusa/actions-setup-minikube@v2.7.2
         with:
           minikube version: v1.25.2
           kubernetes version: v1.24.1

@@ -5,7 +5,7 @@ resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases
 
 val scala12Version = "2.12.13"
 val scala13Version = "2.13.6"
-val scala3Version = "3.1.3"
+val scala3Version = "3.2.0"
 
 val currentScalaVersion = scala13Version
 
@@ -13,22 +13,26 @@ ThisBuild / scalaVersion := currentScalaVersion
 
 val supportedScalaVersion = Seq(scala12Version, scala13Version, scala3Version)
 
-
+/**
+ * 2.6.19 is the last akka open source version
+ * To comply with other companies' legal issues, akka version wont be bumped.
+ * https://www.lightbend.com/blog/why-we-are-changing-the-license-for-akka
+ */
 val akkaVersion = "2.6.19"
 
-val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.15.4"
+val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.17.0"
 
-val specs2 = "org.specs2" %% "specs2-core" % "4.16.1"
-val scalaTest = ("org.scalatest" %% "scalatest" % "3.2.9")
+val specs2 = "org.specs2" %% "specs2-core" % "4.19.0"
+val scalaTest = "org.scalatest" %% "scalatest" % "3.2.14"
 
 val akkaStreamTestKit = ("com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion).cross(CrossVersion.for3Use2_13)
 
 
-val snakeYaml =  "org.yaml" % "snakeyaml" % "1.30"
+val snakeYaml =  "org.yaml" % "snakeyaml" % "1.33"
 
 val commonsIO = "commons-io" % "commons-io" % "2.11.0"
 val commonsCodec = "commons-codec" % "commons-codec" % "1.15"
-val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.71"
+val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.72"
 
 
 // the client API request/response handing uses Akka Http
@@ -38,10 +42,10 @@ val akka = ("com.typesafe.akka" %% "akka-actor" % akkaVersion).cross(CrossVersio
 
 // Skuber uses akka logging, so the examples config uses the akka slf4j logger with logback backend
 val akkaSlf4j = ("com.typesafe.akka" %% "akka-slf4j" % akkaVersion).cross(CrossVersion.for3Use2_13)
-val logback = "ch.qos.logback" % "logback-classic" % "1.2.11" % Runtime
+val logback = "ch.qos.logback" % "logback-classic" % "1.4.5" % Runtime
 
 // the Json formatters are based on Play Json
-val playJson = "com.typesafe.play" %% "play-json" % "2.10.0-RC6"
+val playJson = "com.typesafe.play" %% "play-json" % "2.10.0-RC7"
 val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.3"
 
 val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.233"
@@ -108,7 +112,7 @@ def workflowJobMinikube(jobName: String, k8sServerVersion: String, excludedTests
     steps = List(
       WorkflowStep.Checkout,
       WorkflowStep.Use(
-        ref = UseRef.Public(owner = "manusa", repo = "actions-setup-minikube", ref = "v2.6.0"),
+        ref = UseRef.Public(owner = "manusa", repo = "actions-setup-minikube", ref = "v2.7.2"),
         params = Map(
           "minikubeversion" -> "v1.25.2",
           "kubernetesversion" -> k8sServerVersion,
