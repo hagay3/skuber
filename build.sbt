@@ -3,9 +3,9 @@ import sbtassembly.{MergeStrategy, PathList}
 import xerial.sbt.Sonatype._
 resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases/"
 
-val scala12Version = "2.12.13"
-val scala13Version = "2.13.6"
-val scala3Version = "3.2.0"
+val scala12Version = "2.12.17"
+val scala13Version = "2.13.10"
+val scala3Version = "3.2.2"
 
 val currentScalaVersion = scala13Version
 
@@ -36,7 +36,7 @@ val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.72"
 
 
 // the client API request/response handing uses Akka Http
-val akkaHttp = ("com.typesafe.akka" %% "akka-http" % "10.2.9").cross(CrossVersion.for3Use2_13)
+val akkaHttp = ("com.typesafe.akka" %% "akka-http" % "10.2.10").cross(CrossVersion.for3Use2_13)
 val akkaStream = ("com.typesafe.akka" %% "akka-stream" % akkaVersion).cross(CrossVersion.for3Use2_13)
 val akka = ("com.typesafe.akka" %% "akka-actor" % akkaVersion).cross(CrossVersion.for3Use2_13)
 
@@ -46,10 +46,10 @@ val logback = "ch.qos.logback" % "logback-classic" % "1.4.6" % Runtime
 
 // the Json formatters are based on Play Json
 val playJson = "com.typesafe.play" %% "play-json" % "2.10.0-RC7"
-val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5"
+val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2"
 
-val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.233"
-val awsJavaSdkSts = "com.amazonaws" % "aws-java-sdk-sts" % "1.12.233"
+val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.429"
+val awsJavaSdkSts = "com.amazonaws" % "aws-java-sdk-sts" % "1.12.429"
 val apacheCommonsLogging = "commons-logging" % "commons-logging" % "1.2"
 
 
