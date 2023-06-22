@@ -31,7 +31,7 @@ val akkaStreamTestKit = ("com.typesafe.akka" %% "akka-stream-testkit" % akkaVers
 val snakeYaml =  "org.yaml" % "snakeyaml" % "2.0"
 
 val commonsIO = "commons-io" % "commons-io" % "2.11.0"
-val commonsCodec = "commons-codec" % "commons-codec" % "1.15"
+val commonsCodec = "commons-codec" % "commons-codec" % "1.16.0"
 val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.72"
 
 
