@@ -3,7 +3,7 @@ import sbtassembly.{MergeStrategy, PathList}
 import xerial.sbt.Sonatype._
 resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases/"
 
-val scala12Version = "2.12.18"
+val scala12Version = "2.12.13"
 val scala13Version = "2.13.6"
 val scala3Version = "3.2.0"
 
