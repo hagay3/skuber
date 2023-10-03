@@ -1,9 +1,9 @@
-package skuber.examples.customresources
+package skuber.examples.customresources.v1beta1
 
 import skuber.{K8SException, k8sInit}
 import skuber.ResourceSpecification.Scope
-import skuber.apiextensions.CustomResourceDefinition
-import akka.actor.ActorSystem
+import skuber.apiextensions.v1beta1.CustomResourceDefinition
+import org.apache.pekko.actor.ActorSystem
 import scala.concurrent.ExecutionContextExecutor
 import scala.util.{Failure, Success}
 

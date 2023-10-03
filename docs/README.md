@@ -13,15 +13,37 @@
 
 </br>
 
++ Usage
+  * [Quick Start](#quick-start)
+  * [Release](#release)
+  * [Configuration](#configuration)
+  * [Basic imports](#basic-imports)
 
-## Quick start
++ Code Examples
+  * [List pods example](#list-pods-example)
+  * [List Namespaces](#list-namespaces)
+  * [Create Pod](#create-pod)
+  * [Create deployment](#create-deployment)
+
++ Features
+  * [API Method Summary](#api-method-summary)
+  * [Refresh EKS (AWS) Token](#refresh-eks-aws-token)
+  * [Label Selectors](#label-selectors)
+  * [Safely shutdown the client](#safely-shutdown-the-client)
+
++ Architecture
+  * [Data Model Overview](#data-model-overview)
+  * [Fluent API](#fluent-api)
+  * [JSON Mapping](#json-mapping)
+
+## Quick Start
 
 This example lists pods in `kube-system` namespace:
 
 ```scala
 import skuber._
 import skuber.json.format._
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import scala.util.{Success, Failure}
 
 implicit val system = ActorSystem()
@@ -36,7 +58,7 @@ You can use the latest release by adding to your build:
 - Scala 3.2, 2.13, 2.12 support
 
 ```scala
-libraryDependencies += "io.github.hagay3" %% "skuber" % "3.1"
+libraryDependencies += "io.github.hagay3" %% "skuber" % "4.0.0"
 ```
 
 ## Configuration
@@ -63,7 +85,7 @@ Set the env variables with cluster details.
 ```scala
 import skuber.api.client.{Cluster, Context, KubernetesClient}
 import java.util.Base64
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 val namespace = System.getenv("namespace")
 val serverUrl = System.getenv("serverUrl")
@@ -186,7 +208,7 @@ For client authentication **client certificates** (cert and private key pairs) c
 import skuber._
 import skuber.json.format._
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 implicit val system = ActorSystem()
 implicit val dispatcher = system.dispatcher
@@ -337,7 +359,7 @@ val stsFut = k8s.jsonMergePatch(myStatefulSet, patchStr)
 See also the `PatchExamples` example. Note: There is no patch support yet for the other two (`json patch` and `strategic merge patch`) [strategies](https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#patch-operations)
 
 ### Logs
-Get the logs of a pod (as an Akka Streams Source):
+Get the logs of a pod (as an Pekko Streams Source):
 
 ```scala
 val helloWorldLogsSource: Future[Source[ByteString, _]]  = k8s.getPodLogSource("hello-world-pod", Pod.LogQueryParams())
@@ -368,15 +390,15 @@ val allPodsMapFut: Future[Map[String, PodList]] = k8s listByNamespace[PodList]()
 
 ### Watch API
 
-Kubernetes supports the ability for API clients to watch events on specified resources - as changes occur to the resource(s) on the cluster, Kubernetes sends details of the updates to the watching client. Skuber v2 now uses Akka streams for this (instead of Play iteratees as used in the Skuber v1.x releases), so the `watch[O]` API calls return `Future[Source[O]]` objects which can then be plugged into Akka flows.
+Kubernetes supports the ability for API clients to watch events on specified resources - as changes occur to the resource(s) on the cluster, Kubernetes sends details of the updates to the watching client. Skuber v2 now uses Pekko streams for this (instead of Play iteratees as used in the Skuber v1.x releases), so the `watch[O]` API calls return `Future[Source[O]]` objects which can then be plugged into Pekko flows.
 
 ```scala
 import skuber._
 import skuber.json.format._
 import skuber.apps.v1.Deployment
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl.Sink
 
 object WatchExamples {
   implicit val system = ActorSystem()
@@ -395,7 +417,7 @@ object WatchExamples {
 }
 ```
 
-The above example creates a Watch on the frontend deployment, and feeds the resulting events into an Akka sink that simply prints out the replica count from the current version of the deployment as included in each event. To test the above code, call the watchFrontendScaling method to create the watch and then separately run a number of [kubectl scale](https://kubernetes.io/docs/tutorials/kubernetes-basics/scale-interactive/) commands to set different replica counts on the frontend - for example:
+The above example creates a Watch on the frontend deployment, and feeds the resulting events into an Pekko sink that simply prints out the replica count from the current version of the deployment as included in each event. To test the above code, call the watchFrontendScaling method to create the watch and then separately run a number of [kubectl scale](https://kubernetes.io/docs/tutorials/kubernetes-basics/scale-interactive/) commands to set different replica counts on the frontend - for example:
 ```bash
 kubectl scale --replicas=1 deployment/frontend
 kubectl scale --replicas=10 deployment/frontend
@@ -536,6 +558,11 @@ Contains the `Role`,`RoleBinding`,`ClusterRole` and `ClusterRoleBinding` kinds -
 ***apiextensions***
 
 Currently supports one kind - the `CustomResourceDefinition` kind introduced in Kubernetes V1.7 (as successor to the now deprecated `Third Party Resources` kind, which is not supported in Skuber).
+Two versions of the `CustomResourceDefinition` API are supported currently:
+- `v1beta1` - deprecated in Kubernetes v1.16 in favour of `v1`, no longer served as of v1.22.
+- `v1` - available since Kubernetes v1.16. **If possible, use this version**.
+
+See the CustomResourceDefinition examples in the examples submodule in this project, and the [K8s v1 CRD API version changes here](https://kubernetes.io/docs/reference/using-api/deprecation-guide/#customresourcedefinition-v122) for information about the differences between the two versions of `CustomResourceDefinition`.
 
 ***networking***
 
@@ -552,7 +579,7 @@ Code example for using Dynamic Kubernetes Client `DynamicKubernetesClientImpl`
 
 ```scala
 import java.util.UUID.randomUUID
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import play.api.libs.json.Json
 import skuber.api.dynamic.client.impl.{DynamicKubernetesClientImpl, JsonRaw}
 import scala.concurrent.duration._
@@ -642,7 +669,7 @@ Using [EventBus](https://github.com/argoproj-labs/argo-eventbus) from argocd for
 package skuber.examples.argo
 
 import java.util.UUID.randomUUID
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import play.api.libs.functional.syntax.unlift
 import play.api.libs.json.{Format, JsPath, Json}
 import skuber.ResourceSpecification.{Names, Scope}
@@ -770,15 +797,15 @@ case class Status(
 [Create IAM Role](#create-iam-role) </br>
 [Create a service account](#create-a-service-account) </br>
 [Create the aws-auth mapping](#create-the-aws-auth-mapping) </br>
-[Skuber Code example](#skuber-code-example)
+[Refresh EKS Code Examples]([#refresh-eks-code-examples))
 
 ## Background
 Skuber has the functionality to refresh EKS (AWS) token with an IAM role and cluster configurations.
 
 The initiative:
 * Refreshing tokens increasing k8s cluster security
-* Since kubernetes v1.21 service account tokens has an expiration of 1 hour.
-  https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html#kubernetes-1.21
+* Since kubernetes v1.21 service account tokens has an expiration of 90 days.
+  https://docs.aws.amazon.com/eks/latest/userguide/service-accounts.html
 
 
 ## Step-by-step guide
@@ -896,7 +923,7 @@ Add the following mapping
 ```
 
 
-### Skuber Code example
+### Refresh EKS Code Examples
 * Set the environment variables according to `REMOTE_CLUSTER`
 ```bash
 export namespace=default
