@@ -37,7 +37,7 @@ val pekko = ("org.apache.pekko" %% "pekko-actor" % pekkoVersion).cross(CrossVers
 
 // Skuber uses pekko logging, so the examples config uses the pekko slf4j logger with logback backend
 val pekkoSlf4j = ("org.apache.pekko" %% "pekko-slf4j" % pekkoVersion).cross(CrossVersion.for3Use2_13)
-val logback = "ch.qos.logback" % "logback-classic" % "1.4.6" % Runtime
+val logback = "ch.qos.logback" % "logback-classic" % "1.4.11" % Runtime
 
 // the Json formatters are based on Play Json
 val playJson = "com.typesafe.play" %% "play-json" % "2.10.0-RC7"
