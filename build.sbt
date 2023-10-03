@@ -4,7 +4,7 @@ import xerial.sbt.Sonatype._
 resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases/"
 
 val scala12Version = "2.12.13"
-val scala13Version = "2.13.6"
+val scala13Version = "2.13.12"
 val scala3Version = "3.2.0"
 
 val currentScalaVersion = scala13Version
@@ -13,35 +13,30 @@ ThisBuild / scalaVersion := currentScalaVersion
 
 val supportedScalaVersion = Seq(scala12Version, scala13Version, scala3Version)
 
-/**
- * 2.6.19 is the last akka open source version
- * To comply with other companies' legal issues, akka version wont be bumped.
- * https://www.lightbend.com/blog/why-we-are-changing-the-license-for-akka
- */
-val akkaVersion = "2.6.19"
+val pekkoVersion = "1.0.1"
 
 val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.17.0"
 
 val specs2 = "org.specs2" %% "specs2-core" % "4.19.2"
-val scalaTest = "org.scalatest" %% "scalatest" % "3.2.15"
+val scalaTest = "org.scalatest" %% "scalatest" % "3.2.17"
 
-val akkaStreamTestKit = ("com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion).cross(CrossVersion.for3Use2_13)
+val pekkoStreamTestKit = ("org.apache.pekko" %% "pekko-stream-testkit" % pekkoVersion).cross(CrossVersion.for3Use2_13)
 
 
 val snakeYaml =  "org.yaml" % "snakeyaml" % "2.0"
 
 val commonsIO = "commons-io" % "commons-io" % "2.11.0"
 val commonsCodec = "commons-codec" % "commons-codec" % "1.15"
-val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.72"
+val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.76"
 
 
-// the client API request/response handing uses Akka Http
-val akkaHttp = ("com.typesafe.akka" %% "akka-http" % "10.2.9").cross(CrossVersion.for3Use2_13)
-val akkaStream = ("com.typesafe.akka" %% "akka-stream" % akkaVersion).cross(CrossVersion.for3Use2_13)
-val akka = ("com.typesafe.akka" %% "akka-actor" % akkaVersion).cross(CrossVersion.for3Use2_13)
+// the client API request/response handing uses Pekko Http
+val pekkoHttp = ("org.apache.pekko" %% "pekko-http" % "1.0.0").cross(CrossVersion.for3Use2_13)
+val pekkoStream = ("org.apache.pekko" %% "pekko-stream" % pekkoVersion).cross(CrossVersion.for3Use2_13)
+val pekko = ("org.apache.pekko" %% "pekko-actor" % pekkoVersion).cross(CrossVersion.for3Use2_13)
 
-// Skuber uses akka logging, so the examples config uses the akka slf4j logger with logback backend
-val akkaSlf4j = ("com.typesafe.akka" %% "akka-slf4j" % akkaVersion).cross(CrossVersion.for3Use2_13)
+// Skuber uses pekko logging, so the examples config uses the pekko slf4j logger with logback backend
+val pekkoSlf4j = ("org.apache.pekko" %% "pekko-slf4j" % pekkoVersion).cross(CrossVersion.for3Use2_13)
 val logback = "ch.qos.logback" % "logback-classic" % "1.4.6" % Runtime
 
 // the Json formatters are based on Play Json
@@ -96,7 +91,7 @@ def workflowJobMinikube(jobName: String, k8sServerVersion: String, excludedTests
   val finalSbtCommand: String = {
     val additionalFlags: String = {
       if (excludedTestsTags.nonEmpty) {
-        s"* -- -l ${excludedTestsTags.mkString(" ")}"
+        s"* -- ${excludedTestsTags.map(tag => s"-l $tag").mkString(" ")}"
       } else {
         ""
       }
@@ -114,10 +109,10 @@ def workflowJobMinikube(jobName: String, k8sServerVersion: String, excludedTests
       WorkflowStep.Use(
         ref = UseRef.Public(owner = "manusa", repo = "actions-setup-minikube", ref = "v2.7.2"),
         params = Map(
-          "minikubeversion" -> "v1.25.2",
-          "kubernetesversion" -> k8sServerVersion,
-          "githubtoken" -> "${{ secrets.GITHUB_TOKEN }}",
-          "startargs" -> "--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle"),
+          "minikube version" -> "v1.25.2",
+          "kubernetes version" -> k8sServerVersion,
+          "github token" -> "${{ secrets.GITHUB_TOKEN }}",
+          "start args" -> "--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle"),
         env = Map("SBT_OPTS" -> "-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G")
       ),
       WorkflowStep.Sbt(List(finalSbtCommand))
@@ -134,10 +129,10 @@ inThisBuild(List(
   githubWorkflowTargetTags ++= Seq("v*"),
   githubWorkflowBuild := Seq(WorkflowStep.Sbt(List("test", "It/compile"))),
   githubWorkflowAddedJobs := Seq(
-    workflowJobMinikube(jobName = "integration-kubernetes-v1-19", k8sServerVersion = "v1.19.6"),
-    workflowJobMinikube(jobName = "integration-kubernetes-v1-20", k8sServerVersion = "v1.20.11"),
-    workflowJobMinikube(jobName = "integration-kubernetes-v1-21", k8sServerVersion = "v1.21.5"),
-    workflowJobMinikube(jobName = "integration-kubernetes-v1-22", k8sServerVersion = "v1.22.9", List("CustomResourceTag")),
+    workflowJobMinikube(jobName = "integration-kubernetes-v1-19", k8sServerVersion = "v1.19.6", List("HorizontalPodAutoscalerV2Tag")),
+    workflowJobMinikube(jobName = "integration-kubernetes-v1-20", k8sServerVersion = "v1.20.11", List("HorizontalPodAutoscalerV2Tag")),
+    workflowJobMinikube(jobName = "integration-kubernetes-v1-21", k8sServerVersion = "v1.21.5", List("HorizontalPodAutoscalerV2Tag")),
+    workflowJobMinikube(jobName = "integration-kubernetes-v1-22", k8sServerVersion = "v1.22.9", List("CustomResourceTag", "HorizontalPodAutoscalerV2Tag")),
     workflowJobMinikube(jobName = "integration-kubernetes-v1-23", k8sServerVersion = "v1.23.6", List("CustomResourceTag")),
     workflowJobMinikube(jobName = "integration-kubernetes-v1-24", k8sServerVersion = "v1.24.1", List("CustomResourceTag"))
   ),
@@ -154,16 +149,16 @@ inThisBuild(List(
 lazy val skuberSettings = Seq(
   name := "skuber",
   libraryDependencies ++= Seq(
-    akkaHttp, akkaStream, playJson, snakeYaml, commonsIO, commonsCodec, bouncyCastle,
+    pekkoHttp, pekkoStream, playJson, snakeYaml, commonsIO, commonsCodec, bouncyCastle,
     awsJavaSdkCore, awsJavaSdkSts, apacheCommonsLogging, jacksonDatabind,
-    scalaCheck % Test, specs2 % Test, akkaStreamTestKit % Test,
+    scalaCheck % Test, specs2 % Test, pekkoStreamTestKit % Test,
     scalaTest % Test
   ).map(_.exclude("commons-logging", "commons-logging"))
 )
 
 lazy val examplesSettings = Seq(
   name := "skuber-examples",
-  libraryDependencies ++= Seq(akka, akkaSlf4j, logback, playJson)
+  libraryDependencies ++= Seq(pekko, pekkoSlf4j, logback, playJson)
 )
 
 // by default run the guestbook example when executing a fat examples JAR
@@ -171,11 +166,10 @@ lazy val examplesAssemblySettings = Seq(
   assembly / mainClass := Some("skuber.examples.guestbook.Guestbook")
 )
 
-root / publishArtifact := false
-
-lazy val root = (project in file("."))
+lazy val `skuber-project` = (project in file("."))
   .settings(commonSettings,
-    crossScalaVersions := Nil)
+    crossScalaVersions := Nil,
+    publishArtifact := false)
   .aggregate(skuber, examples)
 
 lazy val skuber = (project in file("client"))

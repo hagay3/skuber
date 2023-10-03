@@ -12,7 +12,7 @@
 
 <p align="center">
   <strong>
-  <a href="https://skuber.co/" target="_blank">Read the Dcoumentation</a>.
+  <a href="https://skuber.co/" target="_blank">Read the Documentation</a>.
   </strong>
  </p>
 
@@ -25,7 +25,7 @@ This example lists pods in `kube-system` namespace:
   ```scala
   import skuber._
   import skuber.json.format._
-  import akka.actor.ActorSystem
+  import org.apache.pekko.actor.ActorSystem
   import scala.util.{Success, Failure}
 
   implicit val system = ActorSystem()
@@ -43,19 +43,22 @@ This example lists pods in `kube-system` namespace:
 Read the [documentation](https://skuber.co) and join [discord community](https://discord.gg/byEh56vFJR) to  ask your questions!
 
 
-**Note: Since Akka license is no more an "Open Source” license, akka version won't be bumped until there will be an equivalent alternative.**
+**Note: Since Akka license is no longer an "Open Source” license, the Skuber project moved on to using [Apache Pekko](https://pekko.apache.org), an open-source Akka fork.**
 
-**Currently, skuber implemented with akka 2.6.19 and the license is open-sourced.**
+**To help migration from Akka to Pekko, please refer to Pekko's [migration guides](https://pekko.apache.org/docs/pekko/current/project/migration-guides.html).**
+
+**Important: please make sure to rename your `akka` configuration keys to `pekko`. This is important when configuring, e.g., the dispatcher for the application.** 
 
 
 ## Features
 - Uses standard `kubeconfig` files for configuration - see the [configuration guide](https://skuber.co/#/?id=configuration) for details
 - Scala 3.2, 2.13, 2.12 support
+- [Typed Kubernetes Client](https://skuber.co/#/?id=basic-imports) for creating, reading, updating, removing, listing and watching resources on a Kubernetes cluster.
+- [Dynamic Kubernetes Client](https://skuber.co/#/?id=dynamic-kubernetes-client), which allows you to interact with Kubernetes API without strict types.
 - Refreshing EKS tokens [Refresh EKS Token guide](https://skuber.co/#/?id=refresh-eks-aws-token)
 - Comprehensive support for Kubernetes API model represented as Scala case classes
 - Support for core, extensions and other Kubernetes API groups
 - Full support for converting resources between the case class and standard JSON representations
-- Client API for creating, reading, updating, removing, listing and watching resources on a Kubernetes cluster
 - The API is asynchronous and strongly typed e.g. `k8s get[Deployment]("nginx")` returns a value of type `Future[Deployment]`
 - Fluent API for creating and updating specifications of Kubernetes resources
 
@@ -75,12 +78,12 @@ You can use the latest release by adding to your build:
 - Scala 3.2, 2.13, 2.12 support
 
 ```sbt
-libraryDependencies += "io.github.hagay3" %% "skuber" % "3.0.6"
+libraryDependencies += "io.github.hagay3" %% "skuber" % "4.0.0"
 ```
 
 ## Building
 
-Building the library from source is very straightforward. Simply run `sbt test`in the root directory of the project to build the library (and examples) and run the unit tests to verify the build.
+Building the library from source is very straightforward. Simply run `sbt test` in the root directory of the project to build the library (and examples) and run the unit tests to verify the build.
 
 ## CI + Build
 The CI parameters defined in `build.sbt`.
