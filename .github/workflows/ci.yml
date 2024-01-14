@@ -9,7 +9,7 @@ name: Continuous Integration
 
 on:
   pull_request:
-    
+    branches: ['**']
   push:
     branches: ['**']
     tags: [v*]
@@ -29,13 +29,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Java (temurin@8)
         if: matrix.java == 'temurin@8'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 8
@@ -43,14 +43,14 @@ jobs:
 
       - name: Setup Java (temurin@17)
         if: matrix.java == 'temurin@17'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: sbt
 
-
-
+      - name: Check that workflows are up to date
+        run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
 
       - run: sbt '++ ${{ matrix.scala }}' test It/compile
 
@@ -58,7 +58,7 @@ jobs:
         run: tar cf targets.tar target client/target examples/target project/target
 
       - name: Upload target directories
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: target-${{ matrix.os }}-${{ matrix.scala }}-${{ matrix.java }}
           path: targets.tar
@@ -70,18 +70,18 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        scala: [2.13.12]
+        scala: [3.3.1]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (full)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Java (temurin@8)
         if: matrix.java == 'temurin@8'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 8
@@ -89,14 +89,14 @@ jobs:
 
       - name: Setup Java (temurin@17)
         if: matrix.java == 'temurin@17'
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: sbt
 
       - name: Download target directories (2.12.13)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: target-${{ matrix.os }}-2.12.13-${{ matrix.java }}
 
@@ -106,7 +106,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (2.13.12)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: target-${{ matrix.os }}-2.13.12-${{ matrix.java }}
 
@@ -116,7 +116,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (3.3.1)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: target-${{ matrix.os }}-3.3.1-${{ matrix.java }}
 
@@ -142,7 +142,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (fast)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
@@ -153,7 +153,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l HorizontalPodAutoscalerV2Tag"'
+      - run: 'sbt ''it:testOnly * -- -l HorizontalPodAutoscalerV2Tag'''
 
   integration-kubernetes-v1-20:
     name: integration-kubernetes-v1-20
@@ -165,7 +165,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (fast)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
@@ -176,7 +176,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l HorizontalPodAutoscalerV2Tag"'
+      - run: 'sbt ''it:testOnly * -- -l HorizontalPodAutoscalerV2Tag'''
 
   integration-kubernetes-v1-21:
     name: integration-kubernetes-v1-21
@@ -188,7 +188,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (fast)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
@@ -199,7 +199,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l HorizontalPodAutoscalerV2Tag"'
+      - run: 'sbt ''it:testOnly * -- -l HorizontalPodAutoscalerV2Tag'''
 
   integration-kubernetes-v1-22:
     name: integration-kubernetes-v1-22
@@ -211,7 +211,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (fast)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
@@ -222,7 +222,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l CustomResourceTag -l HorizontalPodAutoscalerV2Tag"'
+      - run: 'sbt ''it:testOnly * -- -l CustomResourceTag -l HorizontalPodAutoscalerV2Tag'''
 
   integration-kubernetes-v1-23:
     name: integration-kubernetes-v1-23
@@ -234,7 +234,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (fast)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
@@ -245,7 +245,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l CustomResourceTag"'
+      - run: 'sbt ''it:testOnly * -- -l CustomResourceTag'''
 
   integration-kubernetes-v1-24:
     name: integration-kubernetes-v1-24
@@ -257,7 +257,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout current branch (fast)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
@@ -268,4 +268,4 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l CustomResourceTag"'
+      - run: 'sbt ''it:testOnly * -- -l CustomResourceTag'''
