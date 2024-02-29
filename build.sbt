@@ -28,7 +28,7 @@ val scalaTest = "org.scalatest" %% "scalatest" % "3.2.17"
 val pekkoStreamTestKit = ("org.apache.pekko" %% "pekko-stream-testkit" % pekkoVersion).cross(CrossVersion.for3Use2_13)
 
 
-val snakeYaml = "org.yaml" % "snakeyaml" % "2.0"
+val snakeYaml = "org.yaml" % "snakeyaml" % "2.2"
 
 val commonsIO = "commons-io" % "commons-io" % "2.11.0"
 val commonsCodec = "commons-codec" % "commons-codec" % "1.15"
