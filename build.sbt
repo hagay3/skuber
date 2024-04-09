@@ -30,7 +30,7 @@ val pekkoStreamTestKit = ("org.apache.pekko" %% "pekko-stream-testkit" % pekkoVe
 
 val snakeYaml = "org.yaml" % "snakeyaml" % "2.0"
 
-val commonsIO = "commons-io" % "commons-io" % "2.11.0"
+val commonsIO = "commons-io" % "commons-io" % "2.16.1"
 val commonsCodec = "commons-codec" % "commons-codec" % "1.15"
 val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.76"
 
