@@ -50,7 +50,7 @@ val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.
 
 val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.233"
 val awsJavaSdkSts = "com.amazonaws" % "aws-java-sdk-sts" % "1.12.233"
-val apacheCommonsLogging = "commons-logging" % "commons-logging" % "1.2"
+val apacheCommonsLogging = "commons-logging" % "commons-logging" % "1.3.2"
 
 
 Test / scalacOptions ++= Seq("-Yrangepos")
