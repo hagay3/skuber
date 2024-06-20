@@ -3,11 +3,17 @@
 <p align="center"> Scala client for the <a href="https://kubernetes.io/" target="_blank">Kubernetes API</a>. </p>
 
 </br>
+<p align="center">
+  <img src="https://img.shields.io/github/release-date/hagay3/skuber?style=for-the-badge" alt="Latest release date" />
+<a href="https://mvnrepository.com/artifact/io.github.hagay3/skuber_2.12" target="_blank">
+    <img src="https://img.shields.io/maven-central/v/io.github.hagay3/skuber_2.12?color=green&style=for-the-badge" alt="Maven Central" />
+  </a>
+  <a href="https://discord.gg/byEh56vFJR" target="_blank">
+    <img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord" />
+  </a>
+</p>
 
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.hagay3/skuber_2.12?color=green&style=for-the-badge)](https://mvnrepository.com/artifact/io.github.hagay3/skuber_2.12)
-![Latest release date](https://img.shields.io/github/release-date/hagay3/skuber?style=for-the-badge)
-[![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/byEh56vFJR)
 
 <p align="center">
   <strong>
