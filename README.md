@@ -7,7 +7,6 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.hagay3/skuber_2.12?color=green&style=for-the-badge)](https://mvnrepository.com/artifact/io.github.hagay3/skuber_2.12)
 ![Latest release date](https://img.shields.io/github/release-date/hagay3/skuber?style=for-the-badge)
-![Commit Activity](https://img.shields.io/github/commit-activity/m/hagay3/skuber?color=green&style=for-the-badge)
 [![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/byEh56vFJR)
 
 <p align="center">
@@ -41,13 +40,6 @@ This example lists pods in `kube-system` namespace:
 
 ## Documentation
 Read the [documentation](https://skuber.co) and join [discord community](https://discord.gg/byEh56vFJR) to  ask your questions!
-
-
-**Note: Since Akka license is no longer an "Open Source” license, the Skuber project moved on to using [Apache Pekko](https://pekko.apache.org), an open-source Akka fork.**
-
-**To help migration from Akka to Pekko, please refer to Pekko's [migration guides](https://pekko.apache.org/docs/pekko/current/project/migration-guides.html).**
-
-**Important: please make sure to rename your `akka` configuration keys to `pekko`. This is important when configuring, e.g., the dispatcher for the application.** 
 
 
 ## Features
