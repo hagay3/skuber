@@ -14,7 +14,7 @@ import skuber._
 import format._
 
 import play.api.libs.json._
-
+import skuber.json.format.repCtrlrFormat
 
 
 /**

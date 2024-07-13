@@ -32,7 +32,7 @@ class PodLogSpec extends K8SFixture with Eventually with Matchers with BeforeAnd
   }
 
   it should "get log of a pod" in { k8s =>
-    k8s.create(getNginxPod(podName, "1.7.9")).valueT
+    k8s.create(getNginxPod(podName, "1.27.0")).valueT
     Thread.sleep(3000)
     eventually(timeout(30.seconds), interval(3.seconds)) {
       val source = k8s.getPodLogSource(podName, LogQueryParams(follow = Some(false))).futureValue

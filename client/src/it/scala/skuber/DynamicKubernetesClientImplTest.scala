@@ -67,7 +67,7 @@ class DynamicKubernetesClientImplTest extends K8SFixture with Eventually with Ma
               "containers": [
                 {
                   "name": "nginx",
-                  "image": "nginx:1.7.9",
+                  "image": "nginx:1.27.0",
                   "ports": [
                     {
                       "containerPort": 80,
@@ -127,7 +127,7 @@ class DynamicKubernetesClientImplTest extends K8SFixture with Eventually with Ma
               "containers": [
                 {
                   "name": "nginx",
-                  "image": "nginx:1.7.9",
+                  "image": "nginx:1.27.0",
                   "ports": [
                     {
                       "containerPort": 80,

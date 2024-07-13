@@ -41,7 +41,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
   behavior of "Patch"
 
   it should "patch a pod with strategic merge patch by default" in { k8s =>
-    k8s.create(getNginxPod(pod1, "1.7.9")).withTimeout().futureValue
+    k8s.create(getNginxPod(pod1, "1.27.0")).withTimeout().futureValue
     Thread.sleep(5000)
     val randomString = randomUUID().toString
     val patchData = MetadataPatch(labels = Some(Map("foo" -> randomString)), annotations = None)
@@ -55,7 +55,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
   }
 
   it should "patch a pod with strategic merge patch" in { k8s =>
-    k8s.create(getNginxPod(pod2, "1.7.9")).valueT
+    k8s.create(getNginxPod(pod2, "1.27.0")).valueT
     Thread.sleep(5000)
     val randomString = randomUUID().toString
     val patchData = MetadataPatch(labels = Some(Map("foo" -> randomString)), annotations = None, strategy = StrategicMergePatchStrategy)
@@ -70,7 +70,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
   }
 
   it should "patch a pod with json merge patch" in { k8s =>
-    k8s.create(getNginxPod(pod3, "1.7.9")).valueT
+    k8s.create(getNginxPod(pod3, "1.27.0")).valueT
     Thread.sleep(5000)
     val randomString = randomUUID().toString
     val patchData = MetadataPatch(labels = Some(Map("foo" -> randomString)), annotations = None, strategy = JsonMergePatchStrategy)
@@ -85,7 +85,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
 
 
   it should "patch a pod with json patch" in { k8s =>
-    k8s.create(getNginxPod(pod4, "1.7.9")).valueT
+    k8s.create(getNginxPod(pod4, "1.27.0")).valueT
     Thread.sleep(5000)
     val randomString = randomUUID().toString
 
@@ -105,7 +105,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
 
   it should "patch a pod with json patch - specific namespace" in { k8s =>
     createNamespace(namespace5, k8s)
-    k8s.create(getNginxPod(pod5, "1.7.9"), Some(namespace5)).valueT
+    k8s.create(getNginxPod(pod5, "1.27.0"), Some(namespace5)).valueT
     Thread.sleep(5000)
     val randomString = randomUUID().toString
 

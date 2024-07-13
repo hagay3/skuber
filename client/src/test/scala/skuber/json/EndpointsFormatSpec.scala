@@ -4,7 +4,7 @@ import org.specs2.mutable.Specification // for unit-style testing
 import org.specs2.execute.Result
 import org.specs2.execute.Failure
 import org.specs2.execute.Success
-
+import skuber.json.format.endpointFmt
 import scala.math.BigInt
 
 import java.util.Calendar

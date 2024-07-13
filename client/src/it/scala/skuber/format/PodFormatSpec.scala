@@ -27,7 +27,7 @@ class PodFormatSpec extends K8SFixture with Eventually with Matchers with Before
   val namePrefix: String = "foo-"
   val podName:    String = namePrefix + randomUUID().toString
   val containerName = "nginx"
-  val nginxVersion  = "1.7.9"
+  val nginxVersion  = "1.27.0"
   val nginxImage    = s"nginx:$nginxVersion"
 
   val podJsonStr = s"""

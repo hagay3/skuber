@@ -1,5 +1,5 @@
 package skuber.json
-
+import skuber.json.format.nodeFmt
 import org.specs2.mutable.Specification
 import org.specs2.execute.Result
 import org.specs2.execute.Failure
@@ -14,7 +14,7 @@ import format._
 import play.api.libs.json._
 
 import scala.io.Source
-
+import skuber.json.format.nodeListFmt
 /**
  * @author David O'Riordan
  */

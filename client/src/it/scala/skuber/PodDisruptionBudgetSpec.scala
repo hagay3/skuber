@@ -56,7 +56,7 @@ class PodDisruptionBudgetSpec extends K8SFixture with Matchers with BeforeAndAft
 
   it should "create a PodDisruptionBudget" in { k8s =>
     println("START: create a PodDisruptionBudget")
-    k8s.create(getNginxDeployment(deployment1, "1.7.9")).valueT
+    k8s.create(getNginxDeployment(deployment1, "1.27.0")).valueT
     import LabelSelector.dsl._
     val labelSelector = LabelSelector(IsEqualRequirement("app", "nginx"))
     val result = k8s.create(PodDisruptionBudget(budget1).withMinAvailable(Left(1)).withLabelSelector(labelSelector)).valueT
@@ -70,7 +70,7 @@ class PodDisruptionBudgetSpec extends K8SFixture with Matchers with BeforeAndAft
 
   it should "update a PodDisruptionBudget" in { k8s =>
     println("START: update a PodDisruptionBudget")
-    val deployment = k8s.create(getNginxDeployment(deployment2, "1.7.9")).withTimeout()
+    val deployment = k8s.create(getNginxDeployment(deployment2, "1.27.0")).withTimeout()
     deployment.futureValue
     import LabelSelector.dsl._
     val labelSelector = LabelSelector(IsEqualRequirement("app", "nginx"))
@@ -95,7 +95,7 @@ class PodDisruptionBudgetSpec extends K8SFixture with Matchers with BeforeAndAft
 
   it should "delete a PodDisruptionBudget" in { k8s =>
     println("START: delete a PodDisruptionBudget")
-    k8s.create(getNginxDeployment(deployment3, "1.7.9")).valueT
+    k8s.create(getNginxDeployment(deployment3, "1.27.0")).valueT
     import LabelSelector.dsl._
     val labelSelector = LabelSelector(IsEqualRequirement("app", "nginx"))
     val pdb = k8s.create(PodDisruptionBudget(budget3).withMinAvailable(Left(1)).withLabelSelector(labelSelector)).valueT

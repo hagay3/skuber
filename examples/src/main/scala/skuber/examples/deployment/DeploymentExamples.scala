@@ -15,7 +15,7 @@ import scala.concurrent.duration._
  * 
  * The steps it executes are:
  * 
- * 1. Create a deployment of nginx version 1.7.9
+ * 1. Create a deployment of nginx version 1.27.0
  * 2. Waits a little to allow initial deployment to complete
  * 3. Update the deployment to nginx version 1.9.1
  * 
@@ -33,7 +33,7 @@ object DeploymentExamples extends App {
 
   val k8s = k8sInit
   
-  val deployment = deployNginx("1.7.9") 
+  val deployment = deployNginx("1.27.0")
   
   deployment.foreach { depl =>
        
@@ -48,7 +48,7 @@ object DeploymentExamples extends App {
       // Initial pull of nginx images is likely to be greatest delay
       val waitingTime = 60 // seconds
       
-      println("Successfully created deployment of nginx 1.7.9...now waiting " + waitingTime + " seconds before updating it")
+      println("Successfully created deployment of nginx 1.27.0...now waiting " + waitingTime + " seconds before updating it")
       
       val reportInterval = 10 // seconds
       for (i <- 1 to (waitingTime/reportInterval)) {
