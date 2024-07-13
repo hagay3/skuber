@@ -478,7 +478,7 @@ The following example emulates that described [here](http://kubernetes.io/docs/u
 Initial creation of the deployment:
 ```scala
 val nginxLabel = "app" -> "nginx"
-val nginxContainer = Container("nginx",image="nginx:1.7.9").exposePort(80)
+val nginxContainer = Container("nginx",image="nginx:1.27.0").exposePort(80)
 
 val nginxTemplate = Pod.Template.Spec
  .named("nginx")
@@ -620,7 +620,7 @@ object DynamicKubernetesClientImplExample extends App {
               "containers": [
                 {
                   "name": "nginx",
-                  "image": "nginx:1.7.9",
+                  "image": "nginx:1.27.0",
                   "ports": [
                     {
                       "containerPort": 80,

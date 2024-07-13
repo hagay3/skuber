@@ -43,8 +43,8 @@ class WatchContinuouslySpec extends K8SFixture with Eventually with Matchers wit
   it should "continuously watch changes on a resource - deployments" in { k8s =>
     import skuber.api.client.EventType
 
-    val deploymentOne = getNginxDeployment(deployment1, "1.7.9")
-    val deploymentTwo = getNginxDeployment(deployment2, "1.7.9")
+    val deploymentOne = getNginxDeployment(deployment1, "1.27.0")
+    val deploymentTwo = getNginxDeployment(deployment2, "1.27.0")
 
     val stream = k8s.list[DeploymentList].withTimeout().map { l =>
       k8s.watchAllContinuously[Deployment](Some(l.resourceVersion))
@@ -106,7 +106,7 @@ class WatchContinuouslySpec extends K8SFixture with Eventually with Matchers wit
   it should "continuously watch changes on a named resource obj from the beginning - deployment" in { k8s =>
     import skuber.api.client.EventType
 
-    val deployment = getNginxDeployment(deployment3, "1.7.9")
+    val deployment = getNginxDeployment(deployment3, "1.27.0")
 
     k8s.create(deployment).valueT.name shouldBe deployment3
     eventually {
@@ -155,7 +155,7 @@ class WatchContinuouslySpec extends K8SFixture with Eventually with Matchers wit
   it should "continuously watch changes on a named resource from the beginning - deployment" in { k8s =>
     import skuber.api.client.EventType
 
-    val deployment = getNginxDeployment(deployment4, "1.7.9")
+    val deployment = getNginxDeployment(deployment4, "1.27.0")
 
     k8s.create(deployment).valueT.name shouldBe deployment4
     eventually {
@@ -200,7 +200,7 @@ class WatchContinuouslySpec extends K8SFixture with Eventually with Matchers wit
 
     createNamespace(namespace5, k8s)
 
-    val deployment = getNginxDeployment(deployment5, "1.7.9")
+    val deployment = getNginxDeployment(deployment5, "1.27.0")
 
     k8s.create(deployment, Some(namespace5)).valueT.name shouldBe deployment5
     eventually {

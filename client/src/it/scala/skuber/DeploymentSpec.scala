@@ -63,7 +63,7 @@ class DeploymentSpec extends K8SFixture with Eventually with Matchers with Befor
 
   it should "create a deployment" in { k8s =>
 
-    val createdDeployment = k8s.create(getNginxDeployment(deploymentName1, "1.7.9")).valueT
+    val createdDeployment = k8s.create(getNginxDeployment(deploymentName1, "1.27.0")).valueT
     assert(createdDeployment.name == deploymentName1)
 
     val getDeployment = k8s.get[Deployment](deploymentName1).valueT
@@ -72,7 +72,7 @@ class DeploymentSpec extends K8SFixture with Eventually with Matchers with Befor
 
   it should "create a deployment in specific namespace" in { k8s =>
     createNamespace(namespace1, k8s)
-    val createdDeployment = k8s.create(getNginxDeployment(deploymentSpecific1, "1.7.9"), Some(namespace1)).valueT
+    val createdDeployment = k8s.create(getNginxDeployment(deploymentSpecific1, "1.27.0"), Some(namespace1)).valueT
     createdDeployment.name shouldBe deploymentSpecific1
 
     val getDeployment = k8s.get[Deployment](deploymentSpecific1, Some(namespace1)).valueT
@@ -85,7 +85,7 @@ class DeploymentSpec extends K8SFixture with Eventually with Matchers with Befor
 
   it should "update a deployment in specific namespace" in { k8s =>
     createNamespace(namespace2, k8s)
-    val createdDeployment = k8s.create(getNginxDeployment(deploymentSpecific2, "1.7.9"), Some(namespace2)).valueT
+    val createdDeployment = k8s.create(getNginxDeployment(deploymentSpecific2, "1.27.0"), Some(namespace2)).valueT
     createdDeployment.name shouldBe deploymentSpecific2
 
     val expectedReplicas = 2
@@ -106,7 +106,7 @@ class DeploymentSpec extends K8SFixture with Eventually with Matchers with Befor
 
 
   it should "upgrade the newly created deployment" in { k8s =>
-    k8s.create(getNginxDeployment(deploymentName2, "1.7.9")).valueT
+    k8s.create(getNginxDeployment(deploymentName2, "1.27.0")).valueT
     Thread.sleep(5000)
     val getDeployment = k8s.get[Deployment](deploymentName2).valueT
     println(s"DEPLOYMENT TO UPDATE ==> $getDeployment")
@@ -127,7 +127,7 @@ class DeploymentSpec extends K8SFixture with Eventually with Matchers with Befor
 
 
   it should "delete a deployment" in { k8s =>
-    val d = k8s.create(getNginxDeployment(deploymentName3, "1.7.9")).valueT
+    val d = k8s.create(getNginxDeployment(deploymentName3, "1.27.0")).valueT
     assert(d.name == deploymentName3)
 
     k8s.delete[Deployment](deploymentName3).valueT
@@ -146,7 +146,7 @@ class DeploymentSpec extends K8SFixture with Eventually with Matchers with Befor
   it should "delete a deployment in specific namespace" in { k8s =>
     createNamespace(namespace3, k8s)
 
-    val d = k8s.create(getNginxDeployment(deploymentSpecific3, "1.7.9"), Some(namespace3)).valueT
+    val d = k8s.create(getNginxDeployment(deploymentSpecific3, "1.27.0"), Some(namespace3)).valueT
     assert(d.name == deploymentSpecific3)
 
     k8s.delete[Deployment](deploymentSpecific3, namespace = Some(namespace3)).valueT
@@ -165,8 +165,8 @@ class DeploymentSpec extends K8SFixture with Eventually with Matchers with Befor
   it should "deleteAll - delete all deployments in specific namespace" in { k8s =>
     createNamespace(namespace4, k8s)
 
-    k8s.create(getNginxDeployment(deploymentSpecific41, "1.7.9"), Some(namespace4)).valueT
-    k8s.create(getNginxDeployment(deploymentSpecific42, "1.7.9"), Some(namespace4)).valueT
+    k8s.create(getNginxDeployment(deploymentSpecific41, "1.27.0"), Some(namespace4)).valueT
+    k8s.create(getNginxDeployment(deploymentSpecific42, "1.27.0"), Some(namespace4)).valueT
 
 
     k8s.deleteAll[DeploymentList](namespace = Some(namespace4)).valueT
@@ -193,8 +193,8 @@ class DeploymentSpec extends K8SFixture with Eventually with Matchers with Befor
   it should "list deployment in specific namespace" in { k8s =>
     createNamespace(namespace5, k8s)
 
-    k8s.create(getNginxDeployment(deploymentSpecific51, "1.7.9"), Some(namespace5)).valueT
-    k8s.create(getNginxDeployment(deploymentSpecific52, "1.7.9"), Some(namespace5)).valueT
+    k8s.create(getNginxDeployment(deploymentSpecific51, "1.27.0"), Some(namespace5)).valueT
+    k8s.create(getNginxDeployment(deploymentSpecific52, "1.27.0"), Some(namespace5)).valueT
 
     val expectedDeploymentList = List(deploymentSpecific51, deploymentSpecific52)
     val actualDeploymentList =
