@@ -9,7 +9,7 @@ name: Continuous Integration
 
 on:
   pull_request:
-    
+    branches: ['**']
   push:
     branches: ['**']
     tags: [v*]
@@ -32,6 +32,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
       - name: Setup Java (temurin@17)
         if: matrix.java == 'temurin@17'
@@ -41,8 +42,8 @@ jobs:
           java-version: 17
           cache: sbt
 
-
-
+      - name: Check that workflows are up to date
+        run: sbt '++ ${{ matrix.scala }}' githubWorkflowCheck
 
       - run: sbt '++ ${{ matrix.scala }}' test It/compile
 
@@ -80,12 +81,12 @@ jobs:
           java-version: 17
           cache: sbt
 
-      - name: Download target directories (2.12.13)
+      - name: Download target directories (2.12.20)
         uses: actions/download-artifact@v3
         with:
-          name: target-${{ matrix.os }}-2.12.13-${{ matrix.java }}
+          name: target-${{ matrix.os }}-2.12.20-${{ matrix.java }}
 
-      - name: Inflate target directories (2.12.13)
+      - name: Inflate target directories (2.12.20)
         run: |
           tar xf targets.tar
           rm targets.tar
@@ -142,7 +143,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l HorizontalPodAutoscalerV2Tag"'
+      - run: 'sbt ''it:testOnly * -- -l HorizontalPodAutoscalerV2Tag'''
 
   integration-kubernetes-v1-20:
     name: integration-kubernetes-v1-20
@@ -165,7 +166,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l HorizontalPodAutoscalerV2Tag"'
+      - run: 'sbt ''it:testOnly * -- -l HorizontalPodAutoscalerV2Tag'''
 
   integration-kubernetes-v1-21:
     name: integration-kubernetes-v1-21
@@ -188,7 +189,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l HorizontalPodAutoscalerV2Tag"'
+      - run: 'sbt ''it:testOnly * -- -l HorizontalPodAutoscalerV2Tag'''
 
   integration-kubernetes-v1-22:
     name: integration-kubernetes-v1-22
@@ -211,7 +212,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l CustomResourceTag -l HorizontalPodAutoscalerV2Tag"'
+      - run: 'sbt ''it:testOnly * -- -l CustomResourceTag -l HorizontalPodAutoscalerV2Tag'''
 
   integration-kubernetes-v1-23:
     name: integration-kubernetes-v1-23
@@ -234,7 +235,7 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l CustomResourceTag"'
+      - run: 'sbt ''it:testOnly * -- -l CustomResourceTag'''
 
   integration-kubernetes-v1-24:
     name: integration-kubernetes-v1-24
@@ -257,4 +258,4 @@ jobs:
           github token: ${{ secrets.GITHUB_TOKEN }}
           start args: '--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle'
 
-      - run: 'sbt "it:testOnly * -- -l CustomResourceTag"'
+      - run: 'sbt ''it:testOnly * -- -l CustomResourceTag'''
