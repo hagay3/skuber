@@ -17,7 +17,7 @@
 
 <p align="center">
   <strong>
-  <a href="https://skuber.co/" target="_blank">Read the Documentation</a>.
+  <a href="https://hagay3.github.io/skuber/" target="_blank">Read the Documentation</a>.
   </strong>
  </p>
 
@@ -45,15 +45,15 @@ This example lists pods in `kube-system` namespace:
   ```
 
 ## Documentation
-Read the [documentation](https://skuber.co) and join [discord community](https://discord.gg/byEh56vFJR) to  ask your questions!
+Read the [documentation](https://hagay3.github.io/skuber/#/) and join [discord community](https://discord.gg/byEh56vFJR) to  ask your questions!
 
 
 ## Features
-- Uses standard `kubeconfig` files for configuration - see the [configuration guide](https://skuber.co/#/?id=configuration) for details
+- Uses standard `kubeconfig` files for configuration - see the [configuration guide](https://hagay3.github.io/skuber/#/?id=configuration) for details
 - Scala 3.2, 2.13, 2.12 support
-- [Typed Kubernetes Client](https://skuber.co/#/?id=basic-imports) for creating, reading, updating, removing, listing and watching resources on a Kubernetes cluster.
-- [Dynamic Kubernetes Client](https://skuber.co/#/?id=dynamic-kubernetes-client), which allows you to interact with Kubernetes API without strict types.
-- Refreshing EKS tokens [Refresh EKS Token guide](https://skuber.co/#/?id=refresh-eks-aws-token)
+- [Typed Kubernetes Client](https://hagay3.github.io/skuber/#/?id=basic-imports) for creating, reading, updating, removing, listing and watching resources on a Kubernetes cluster.
+- [Dynamic Kubernetes Client](https://hagay3.github.io/skuber/#/?id=dynamic-kubernetes-client), which allows you to interact with Kubernetes API without strict types.
+- Refreshing EKS tokens [Refresh EKS Token guide](https://hagay3.github.io/skuber/#/?id=refresh-eks-aws-token)
 - Comprehensive support for Kubernetes API model represented as Scala case classes
 - Support for core, extensions and other Kubernetes API groups
 - Full support for converting resources between the case class and standard JSON representations
