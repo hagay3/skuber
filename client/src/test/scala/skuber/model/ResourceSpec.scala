@@ -69,9 +69,9 @@ class ResourceSpec extends Specification {
       // Deserialize into ResourceList
       import skuber.json.format.quantityFormat
       val result: JsResult[List[Quantity]] = Json.fromJson[List[Quantity]](json)
-      val amoutList = result.get.map(_.amount)
+      val amountList = result.get.map(_.amount)
 
-      amoutList mustEqual List(1.3, 1.2, 0.05, 1048576, 1, 2)
+      amountList mustEqual List(1.3, 1.2, 0.05, 1048576, 1, 2)
     }
   }
     
