@@ -5,6 +5,8 @@ package skuber
  */
 
 
+import play.api.libs.json.{JsResult, Json}
+import skuber.Resource.Quantity
 import scala.util.matching.Regex
 
 object Resource {
