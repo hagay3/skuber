@@ -1,7 +1,8 @@
 package skuber
 
-import org.specs2.mutable.Specification // for unit-style testing
-
+import org.specs2.mutable.Specification
+import play.api.libs.json.{JsResult, Json}
+import skuber.Resource.Quantity
 import scala.math.BigInt
 
 
@@ -58,6 +59,20 @@ class ResourceSpec extends Specification {
         def badVal = Resource.Quantity("10Zi").amount 
         badVal must throwAn[Exception] 
       }
+  }
+
+  "A resource quantity json formatter\n" >> {
+    "where quantity json formatter should accpet different types" >> {
+      val jsonString = """[1.3, "1.2", "50m", "1Mi", 1, "2"]"""
+      // Parse the JSON
+      val json = Json.parse(jsonString)
+      // Deserialize into ResourceList
+      import skuber.json.format.quantityFormat
+      val result: JsResult[List[Quantity]] = Json.fromJson[List[Quantity]](json)
+      val amountList = result.get.map(_.amount)
+
+      amountList mustEqual List(1.3, 1.2, 0.05, 1048576, 1, 2)
+    }
   }
     
 }
