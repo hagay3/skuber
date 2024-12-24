@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         scala: [2.12.13, 2.13.12, 3.3.1]
         java: [temurin@17]
     runs-on: ${{ matrix.os }}
@@ -61,7 +61,7 @@ jobs:
     if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         scala: [2.13.12]
         java: [temurin@17]
     runs-on: ${{ matrix.os }}
@@ -125,7 +125,7 @@ jobs:
     name: integration-kubernetes-v1-19
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         scala: [2.13.12]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
@@ -148,7 +148,7 @@ jobs:
     name: integration-kubernetes-v1-20
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         scala: [2.13.12]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
@@ -171,7 +171,7 @@ jobs:
     name: integration-kubernetes-v1-21
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         scala: [2.13.12]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
@@ -194,7 +194,7 @@ jobs:
     name: integration-kubernetes-v1-22
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         scala: [2.13.12]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
@@ -217,7 +217,7 @@ jobs:
     name: integration-kubernetes-v1-23
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         scala: [2.13.12]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
@@ -240,7 +240,7 @@ jobs:
     name: integration-kubernetes-v1-24
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
         scala: [2.13.12]
         java: [temurin@8]
     runs-on: ${{ matrix.os }}
