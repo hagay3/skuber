@@ -395,9 +395,7 @@ package object format {
       }
       jsResult match {
         case JsSuccess(_, _) => jsResult
-        case JsError(_) => Json.fromJson[Int](json).flatMap {
-          s => JsSuccess(Resource.Quantity(s.toString))
-        }
+        case JsError(_) => JsSuccess(Resource.Quantity(json.toString()))
       }
     }
 
