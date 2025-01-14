@@ -668,7 +668,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
     * Discards the response
     * This is for requests (e.g. delete) for which we normally have no interest in the response body, but Pekko Http
     * requires us to drain it anyway
-    * (see https://doc.pekko.io/docs/pekko-http/current/scala/http/implications-of-streaming-http-entity.html)
+    * (see https://pekko.apache.org/docs/pekko-http/current/scala/http/implications-of-streaming-http-entity.html)
     * @param response the Http Response that we need to drain
     * @return A Future[Unit] that will be set to Success or Failure depending on outcome of draining
     */
