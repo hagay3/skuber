@@ -20,7 +20,7 @@ val supportedScalaVersion = Seq(scala12Version, scala13Version, scala3Version)
 
 val pekkoVersion = "1.0.2"
 
-val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.17.1"
+val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.18.1"
 
 val specs2 = "org.specs2" %% "specs2-core" % "4.20.5"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.2.17"
