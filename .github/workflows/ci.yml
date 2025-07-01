@@ -81,7 +81,7 @@ jobs:
           cache: sbt
 
       - name: Download target directories (2.12.13)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: target-${{ matrix.os }}-2.12.13-${{ matrix.java }}
 
@@ -91,7 +91,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (2.13.12)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: target-${{ matrix.os }}-2.13.12-${{ matrix.java }}
 
@@ -101,7 +101,7 @@ jobs:
           rm targets.tar
 
       - name: Download target directories (3.3.1)
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: target-${{ matrix.os }}-3.3.1-${{ matrix.java }}
 
