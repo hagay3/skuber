@@ -132,8 +132,6 @@ jobs:
     steps:
       - name: Checkout current branch (fast)
         uses: actions/checkout@v3
-      - env:
-          SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
           
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1
