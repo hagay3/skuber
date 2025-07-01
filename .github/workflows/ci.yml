@@ -135,11 +135,10 @@ jobs:
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
           
-      - name: Create kind cluster
-        uses: helm/kind-action@v1.8.0
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1
         with:
-          version: v0.20.0                    # optional: kind version
-          node_image: kindest/node:v1.19.6    # match your desired Kubernetes version
+          node_image: kindest/node:v1.29.2   
 
       - name: Wait for cluster to be ready
         run: kubectl wait --for=condition=Ready nodes --all --timeout=120s
