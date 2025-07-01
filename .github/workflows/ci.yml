@@ -132,7 +132,26 @@ jobs:
     steps:
       - name: Checkout current branch (fast)
         uses: actions/checkout@v3
-      - run: sudo swapoff -a
+      - run: |
+          # Load netfilter module
+          sudo modprobe br_netfilter
+          echo 'br_netfilter' | sudo tee /etc/modules-load.d/k8s.conf
+          
+          # Configure sysctl
+          echo 'net.bridge.bridge-nf-call-iptables=1' | sudo tee /etc/sysctl.d/k8s.conf
+          sudo sysctl --system
+          
+          # Disable swap
+          sudo swapoff -a
+          sudo sed -i.bak '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+          
+          # Install missing packages
+          sudo apt-get update
+          sudo apt-get install -y socat conntrack
+          
+          # Enable and start kubelet
+          sudo systemctl enable kubelet
+          sudo systemctl start kubelet
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
         uses: manusa/actions-setup-minikube@v2.14.0
