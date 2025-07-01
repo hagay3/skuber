@@ -132,7 +132,7 @@ jobs:
     steps:
       - name: Checkout current branch (fast)
         uses: actions/checkout@v3
-
+      - run: sudo swapoff -a
       - env:
           SBT_OPTS: '-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G'
         uses: manusa/actions-setup-minikube@v2.14.0
