@@ -14,7 +14,7 @@ import skuber._
 import format._
 
 import play.api.libs.json._
-
+import skuber.json.format.repCtrlrFormat
 
 
 /**
@@ -40,8 +40,7 @@ import ReplicationController._
     } 
     
     "this can be done for a controller with a spec for replicating a pod with a single container" >> {
-      val templateSpec=Pod.Template.Spec(
-                    metadata=ObjectMeta(name="rc"),
+      val templateSpec=Pod.Template.Spec(metadata=ObjectMeta(name="rc"),
                     spec=Some(Pod.Spec(List(Container(name="test", image="test")))))
                     
       val myRC = Namespace("myNamespace").replicationController("myRC").

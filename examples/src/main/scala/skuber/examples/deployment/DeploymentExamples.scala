@@ -3,10 +3,8 @@ package skuber.examples.deployment
 import skuber._
 import skuber.ext.Deployment
 import skuber.json.ext.format._
-
-import akka.actor.ActorSystem
-
-import scala.concurrent.{Future, Await}
+import org.apache.pekko.actor.ActorSystem
+import scala.concurrent.{Await, ExecutionContextExecutor, Future}
 import scala.concurrent.duration._
 
 /**
@@ -17,7 +15,7 @@ import scala.concurrent.duration._
  * 
  * The steps it executes are:
  * 
- * 1. Create a deployment of nginx version 1.7.9
+ * 1. Create a deployment of nginx version 1.27.0
  * 2. Waits a little to allow initial deployment to complete
  * 3. Update the deployment to nginx version 1.9.1
  * 
@@ -30,12 +28,12 @@ object DeploymentExamples extends App {
 
   val nginxDeploymentName="nginx-deployment"
 
-  implicit val system = ActorSystem()
-  implicit val dispatcher = system.dispatcher
+  implicit val system: ActorSystem = ActorSystem()
+  implicit val dispatcher: ExecutionContextExecutor = system.dispatcher
 
   val k8s = k8sInit
   
-  val deployment = deployNginx("1.7.9") 
+  val deployment = deployNginx("1.27.0")
   
   deployment.foreach { depl =>
        
@@ -50,7 +48,7 @@ object DeploymentExamples extends App {
       // Initial pull of nginx images is likely to be greatest delay
       val waitingTime = 60 // seconds
       
-      println("Successfully created deployment of nginx 1.7.9...now waiting " + waitingTime + " seconds before updating it")
+      println("Successfully created deployment of nginx 1.27.0...now waiting " + waitingTime + " seconds before updating it")
       
       val reportInterval = 10 // seconds
       for (i <- 1 to (waitingTime/reportInterval)) {
@@ -67,7 +65,7 @@ object DeploymentExamples extends App {
           println("Deleting deployment, including its owned resources")
           val deleteOptions=DeleteOptions(propagationPolicy = Some(DeletePropagation.Foreground))
           val deleteFut=k8s.deleteWithOptions[Deployment](nginxDeploymentName, deleteOptions)
-          Await.ready(deleteFut, 30 seconds)
+          Await.ready(deleteFut, 30.seconds)
           println("DSuccessfully completed, exiting")
           system.terminate().foreach { f =>
             System.exit(0)
@@ -107,7 +105,7 @@ object DeploymentExamples extends App {
     createdDeplFut recoverWith {
       case ex: K8SException if (ex.status.code.contains(409)) => {
         println("It seems the deployment object already exists - retrieving latest version and updating it")
-        (k8s get[Deployment] nginxDeployment.name) flatMap { curr =>
+        k8s.get[Deployment](nginxDeployment.name) flatMap { curr =>
           println("retrieved latest deployment, now updating")
           val updated = nginxDeployment.withResourceVersion(curr.metadata.resourceVersion)
           k8s update updated
@@ -119,11 +117,11 @@ object DeploymentExamples extends App {
   def updateNginx(version: String): Future[Deployment] = {
     
     val updatedContainer = Container("nginx",image="nginx:" + version).exposePort(80)
-    val currentDeployment = k8s get[Deployment]("nginx-deployment")
+    val currentDeployment = k8s.get[Deployment]("nginx-deployment")
     
     currentDeployment flatMap { nginxDeployment =>
         val updatedDeployment = nginxDeployment.updateContainer(updatedContainer)
-        k8s update updatedDeployment
+        k8s.update( updatedDeployment)
     }  
   }
 }

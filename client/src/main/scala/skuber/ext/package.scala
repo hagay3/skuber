@@ -12,14 +12,14 @@ package skuber
  * @author David O'Riordan
  */
 
-import akka.http.scaladsl.marshalling.Marshal
+import org.apache.pekko.http.scaladsl.marshalling.Marshal
 
 import scala.language.implicitConversions
 import scala.concurrent.Future
 import skuber.json.ext.format._
 import skuber.api.client._
-import akka.http.scaladsl.model._
-import skuber.json.PlayJsonSupportForAkkaHttp._
+import org.apache.pekko.http.scaladsl.model._
+import skuber.json.PlayJsonSupportForPekkoHttp._
 import skuber.networking.Ingress
 
 package object ext {
@@ -85,24 +85,24 @@ package object ext {
      * @returns a future containing the retrieved Scale subresource
      */
     @deprecated(message="Use method getScale[Deployment](name) instead")
-    def getDeploymentScale(objName: String)(implicit lc:LoggingContext=RequestLoggingContext()) = context.getScale[skuber.apps.Deployment](objName)
+    def getDeploymentScale(objName: String)(implicit lc:LoggingContext=RequestLoggingContext()): Future[Scale] = context.getScale[skuber.apps.Deployment](objName)
 
     /*
      * Fetch the Scale subresource of a named Replication Controller
      * @returns a future containing the retrieved Scale subresource
      */
     @deprecated(message="Use method getScale[ReplicationController](name) instead")
-    def getReplicationControllerScale(objName: String)(implicit lc:LoggingContext=RequestLoggingContext()) = context.getScale[ReplicationController](objName)
+    def getReplicationControllerScale(objName: String)(implicit lc:LoggingContext=RequestLoggingContext()): Future[Scale] = context.getScale[ReplicationController](objName)
 
     /*
      * Fetch the Scale subresource of a named Replication Controller
      * @returns a future containing the retrieved Scale subresource
      */
     @deprecated(message="Use method getScale[ReplicaSet](name) instead")
-    def getReplicaSetScale(objName: String)(implicit lc:LoggingContext=RequestLoggingContext()) = context.getScale[ReplicaSet](objName)
+    def getReplicaSetScale(objName: String)(implicit lc:LoggingContext=RequestLoggingContext()): Future[Scale] = context.getScale[ReplicaSet](objName)
   }
 
   // this implicit conversions makes the (deprecated) ExtensionsAPI methods available on a
   // standard Skuber request context object
-  implicit def k8sCtxToExtAPI(ctx: K8SRequestContext) = new ExtensionsGroupAPI(ctx)
+  implicit def k8sCtxToExtAPI(ctx: K8SRequestContext): ExtensionsGroupAPI = new ExtensionsGroupAPI(ctx)
 }

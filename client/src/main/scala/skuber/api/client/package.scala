@@ -2,10 +2,11 @@ package skuber.api
 
 import java.time.Instant
 import java.util.UUID
-import akka.NotUsed
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{HttpCharsets, HttpRequest, HttpResponse, MediaType}
-import akka.stream.scaladsl.Flow
+import org.apache.pekko.NotUsed
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model.{HttpCharsets, HttpRequest, HttpResponse, MediaType}
+import org.apache.pekko.http.scaladsl.settings.ConnectionPoolSettings
+import org.apache.pekko.stream.scaladsl.Flow
 import com.typesafe.config.{Config, ConfigFactory}
 import org.joda.time.DateTime
 import play.api.libs.functional.syntax._
@@ -143,10 +144,8 @@ package object client {
   private[client] object GcpRefresh {
     // todo - the path to read this from is part of the configuration, use that instead of
     // hard coding.
-    implicit val gcpRefreshReads: Reads[GcpRefresh] = (
-        (JsPath \ "credential" \ "access_token").read[String] and
-            (JsPath \ "credential" \ "token_expiry").read[Instant]
-        ) (GcpRefresh.apply _)
+    implicit val gcpRefreshReads: Reads[GcpRefresh] = ((JsPath \ "credential" \ "access_token").read[String] and
+            (JsPath \ "credential" \ "token_expiry").read[Instant]) (GcpRefresh.apply _)
   }
 
   final case class GcpConfiguration(cachedAccessToken: Option[GcpCachedAccessToken], cmd: GcpCommand)
@@ -166,12 +165,8 @@ package object client {
         token <- accessToken
         exp <- expiry
       } yield GcpCachedAccessToken(token, exp)
-      new GcpAuth(
-        GcpConfiguration(
-          cachedAccessToken = cachedAccessToken,
-          GcpCommand(cmdPath, cmdArgs)
-        )
-      )
+      new GcpAuth(GcpConfiguration(cachedAccessToken = cachedAccessToken,
+          GcpCommand(cmdPath, cmdArgs)))
     }
   }
 
@@ -210,25 +205,30 @@ package object client {
   }
 
   def init(config: Configuration)(implicit actorSystem: ActorSystem): KubernetesClient = {
-    init(config.currentContext, LoggingConfig(), None, defaultAppConfig)
+    init(config.currentContext, LoggingConfig(), None, defaultAppConfig, None)
   }
 
   def init(appConfig: Config)(implicit actorSystem: ActorSystem): KubernetesClient = {
-    init(defaultK8sConfig.currentContext, LoggingConfig(), None, appConfig)
+    init(defaultK8sConfig.currentContext, LoggingConfig(), None, appConfig, None)
   }
 
   def init(config: Configuration, appConfig: Config)(implicit actorSystem: ActorSystem): KubernetesClient = {
-    init(config.currentContext, LoggingConfig(), None, appConfig)
+    init(config.currentContext, LoggingConfig(), None, appConfig, None)
   }
 
   def init(k8sContext: Context, logConfig: LoggingConfig, closeHook: Option[() => Unit] = None)
       (implicit actorSystem: ActorSystem): KubernetesClient = {
-    init(k8sContext, logConfig, closeHook, defaultAppConfig)
+    init(k8sContext, logConfig, closeHook, defaultAppConfig, None)
   }
 
   def init(k8sContext: Context, logConfig: LoggingConfig, closeHook: Option[() => Unit], appConfig: Config)
       (implicit actorSystem: ActorSystem): KubernetesClient = {
-    KubernetesClientImpl(k8sContext, logConfig, closeHook, appConfig)
+    KubernetesClientImpl(k8sContext, logConfig, closeHook, appConfig, None)
+  }
+
+  def init(k8sContext: Context, logConfig: LoggingConfig, closeHook: Option[() => Unit], appConfig: Config, connectionPoolSettings: Option[ConnectionPoolSettings])
+      (implicit actorSystem: ActorSystem): KubernetesClient = {
+    KubernetesClientImpl(k8sContext, logConfig, closeHook, appConfig, connectionPoolSettings)
   }
 
   def defaultK8sConfig: Configuration = Configuration.defaultK8sConfig

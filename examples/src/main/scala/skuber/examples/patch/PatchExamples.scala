@@ -1,6 +1,6 @@
 package skuber.examples.patch
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import skuber._
 import skuber.json.format._
 import skuber.apps.v1beta1.StatefulSet
@@ -60,7 +60,7 @@ object PatchExamples extends App {
     val stsFut = createdStsFut recoverWith {
       case ex: K8SException if (ex.status.code.contains(409)) => {
         println("It seems the stateful set or service already exists - retrieving latest version")
-        k8s get[StatefulSet] nginxStatefulSet.name
+        k8s.get[StatefulSet](nginxStatefulSet.name)
       }
     }
 

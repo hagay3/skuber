@@ -1,9 +1,9 @@
 package skuber.json
 
 /*
- * Support for using Play Json formatters with Akka HTTP client
+ * Support for using Play Json formatters with Pekko HTTP client
  * This class is basically a copy of:
- * https://github.com/hseeberger/akka-http-json/blob/master/akka-http-play-json/src/main/scala/de/heikoseeberger/akkahttpplayjson/PlayJsonSupport.scala
+ * https://github.com/hseeberger/pekko-http-json/blob/master/pekko-http-play-json/src/main/scala/de/heikoseeberger/pekkohttpplayjson/PlayJsonSupport.scala
  * ... but with some logging added to support skuber supportability requirements
 */
 
@@ -23,19 +23,19 @@ package skuber.json
  * limitations under the License.
  */
 
-import akka.http.scaladsl.marshalling.{ Marshaller, ToEntityMarshaller }
-import akka.http.scaladsl.model.ContentTypeRange
-import akka.http.scaladsl.model.MediaTypes.`application/json`
-import akka.http.scaladsl.server.{ RejectionError, ValidationRejection }
-import akka.http.scaladsl.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
-import akka.util.ByteString
+import org.apache.pekko.http.scaladsl.marshalling.{ Marshaller, ToEntityMarshaller }
+import org.apache.pekko.http.scaladsl.model.ContentTypeRange
+import org.apache.pekko.http.scaladsl.model.MediaTypes.`application/json`
+import org.apache.pekko.http.scaladsl.server.{ RejectionError, ValidationRejection }
+import org.apache.pekko.http.scaladsl.unmarshalling.{ FromEntityUnmarshaller, Unmarshaller }
+import org.apache.pekko.util.ByteString
 import play.api.libs.json.{ JsError, JsValue, Json, Reads, Writes }
 import scala.collection.immutable.Seq
 
 /**
   * Automatic to and from JSON marshalling/unmarshalling using an in-scope *play-json* protocol.
   */
-object PlayJsonSupportForAkkaHttp extends PlayJsonSupportForAkkaHttp {
+object PlayJsonSupportForPekkoHttp extends PlayJsonSupportForPekkoHttp {
 
   final case class PlayJsonError(error: JsError) extends RuntimeException {
     override def getMessage: String =
@@ -47,8 +47,8 @@ object PlayJsonSupportForAkkaHttp extends PlayJsonSupportForAkkaHttp {
 /**
   * Automatic to and from JSON marshalling/unmarshalling using an in-scope *play-json* protocol.
   */
-trait PlayJsonSupportForAkkaHttp {
-  import PlayJsonSupportForAkkaHttp._
+trait PlayJsonSupportForPekkoHttp {
+  import PlayJsonSupportForPekkoHttp._
 
   def unmarshallerContentTypes: Seq[ContentTypeRange] =
     List(`application/json`)
@@ -75,9 +75,7 @@ trait PlayJsonSupportForAkkaHttp {
           .reads(json)
           .recoverTotal { e =>
             println(s"e => $e")
-            throw RejectionError(
-              ValidationRejection(JsError.toJson(e).toString, Some(PlayJsonError(e)))
-            )
+            throw RejectionError(ValidationRejection(JsError.toJson(e).toString, Some(PlayJsonError(e))))
           }
     jsonStringUnmarshaller.map { data =>
       read(Json.parse(data))
@@ -90,9 +88,7 @@ trait PlayJsonSupportForAkkaHttp {
     * @tparam A type to encode
     * @return marshaller for any `A` value
     */
-  implicit def marshaller[A](
-    implicit writes: Writes[A],
-    printer: JsValue => String = Json.prettyPrint
-  ): ToEntityMarshaller[A] =
+  implicit def marshaller[A](implicit writes: Writes[A],
+    printer: JsValue => String = Json.prettyPrint): ToEntityMarshaller[A] =
     jsonStringMarshaller.compose(printer).compose(writes.writes)
 }

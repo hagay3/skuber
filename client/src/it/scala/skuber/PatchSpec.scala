@@ -2,7 +2,8 @@ package skuber
 
 import java.util.UUID.randomUUID
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.{BeforeAndAfterAll, Matchers}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
 import skuber.FutureUtil.FutureOps
 import skuber.api.patch._
 import skuber.json.format._
@@ -10,7 +11,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 
-class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndAfterAll with ScalaFutures {
+class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndAfterAll with ScalaFutures with TestRetry {
 
   val pod1: String = randomUUID().toString
   val pod2: String = randomUUID().toString
@@ -24,8 +25,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
   override def afterAll(): Unit = {
     val k8s = k8sInit(config)
 
-    val results = Future.sequence(
-      List(pod1, pod2, pod3, pod4).map { name =>
+    val results = Future.sequence(List(pod1, pod2, pod3, pod4).map { name =>
         k8s.delete[Pod](name).withTimeout().recover { case _ => () }
       }).withTimeout()
 
@@ -41,7 +41,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
   behavior of "Patch"
 
   it should "patch a pod with strategic merge patch by default" in { k8s =>
-    k8s.create(getNginxPod(pod1, "1.7.9")).withTimeout().futureValue
+    k8s.create(getNginxPod(pod1, "1.27.0")).withTimeout().futureValue
     Thread.sleep(5000)
     val randomString = randomUUID().toString
     val patchData = MetadataPatch(labels = Some(Map("foo" -> randomString)), annotations = None)
@@ -55,7 +55,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
   }
 
   it should "patch a pod with strategic merge patch" in { k8s =>
-    k8s.create(getNginxPod(pod2, "1.7.9")).valueT
+    k8s.create(getNginxPod(pod2, "1.27.0")).valueT
     Thread.sleep(5000)
     val randomString = randomUUID().toString
     val patchData = MetadataPatch(labels = Some(Map("foo" -> randomString)), annotations = None, strategy = StrategicMergePatchStrategy)
@@ -70,7 +70,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
   }
 
   it should "patch a pod with json merge patch" in { k8s =>
-    k8s.create(getNginxPod(pod3, "1.7.9")).valueT
+    k8s.create(getNginxPod(pod3, "1.27.0")).valueT
     Thread.sleep(5000)
     val randomString = randomUUID().toString
     val patchData = MetadataPatch(labels = Some(Map("foo" -> randomString)), annotations = None, strategy = JsonMergePatchStrategy)
@@ -85,7 +85,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
 
 
   it should "patch a pod with json patch" in { k8s =>
-    k8s.create(getNginxPod(pod4, "1.7.9")).valueT
+    k8s.create(getNginxPod(pod4, "1.27.0")).valueT
     Thread.sleep(5000)
     val randomString = randomUUID().toString
 
@@ -105,7 +105,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
 
   it should "patch a pod with json patch - specific namespace" in { k8s =>
     createNamespace(namespace5, k8s)
-    k8s.create(getNginxPod(pod5, "1.7.9"), Some(namespace5)).valueT
+    k8s.create(getNginxPod(pod5, "1.27.0"), Some(namespace5)).valueT
     Thread.sleep(5000)
     val randomString = randomUUID().toString
 

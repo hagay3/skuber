@@ -3,14 +3,14 @@ package skuber.api
 import java.io.InputStream
 import java.security.{KeyStore, SecureRandom}
 
-import akka.Done
-import akka.actor.ActorSystem
-import akka.http.scaladsl.{ConnectionContext, Http, HttpsConnectionContext}
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.settings.ClientConnectionSettings
-import akka.stream.scaladsl.{Sink, Source}
+import org.apache.pekko.Done
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.{ConnectionContext, Http, HttpsConnectionContext}
+import org.apache.pekko.http.scaladsl.model._
+import org.apache.pekko.http.scaladsl.server.Directives._
+import org.apache.pekko.http.scaladsl.server.Route
+import org.apache.pekko.http.scaladsl.settings.ClientConnectionSettings
+import org.apache.pekko.stream.scaladsl.{Sink, Source}
 
 import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
 import org.scalatest.concurrent.ScalaFutures
@@ -93,11 +93,9 @@ class LongPollingPoolSpec extends Specification with ScalaFutures {
     }
 
     "handle unsupported scheme" >> {
-      LongPollingPool[Int](
-        "badScheam",
+      LongPollingPool[Int]("badScheam",
         "localhost", 4322, 30.seconds, None,
-        ClientConnectionSettings(system.settings.config)
-      ) must throwA[IllegalArgumentException]
+        ClientConnectionSettings(system.settings.config)) must throwA[IllegalArgumentException]
     }
 
   }

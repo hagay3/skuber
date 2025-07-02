@@ -1,7 +1,7 @@
 package skuber.examples.auth
 
 import java.util.Base64
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import com.amazonaws.regions.Regions
 import org.joda.time.DateTime
 import skuber.api.Configuration
@@ -9,12 +9,17 @@ import skuber.api.client.token.AwsAuthRefreshable
 import skuber.api.client.{Cluster, Context, KubernetesClient}
 import skuber.json.format._
 import skuber.{PodList, k8sInit}
-import scala.concurrent.Await
+import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration._
 
+/**
+ * sbt examples/assembly
+ * export namespace=default;export serverUrl=https://EKS_URL; export certificate=CERTIFICATE_BASE64_ENCODED;export clusterName=EKS_CLUSTER_NAME; export region=REGION_NAME
+ * java -cp ./examples/target/scala-2.13/skuber-examples-assembly-x.x.x.jar  skuber.examples.auth.AwsAuthExample
+ */
 object AwsAuthExample extends App {
-  implicit private val as = ActorSystem()
-  implicit private val ex = as.dispatcher
+  implicit private val as: ActorSystem = ActorSystem()
+  implicit private val ex: ExecutionContextExecutor = as.dispatcher
   val namespace = System.getenv("namespace")
   val serverUrl = System.getenv("serverUrl")
   val certificate = Base64.getDecoder.decode(System.getenv("certificate"))
@@ -26,7 +31,7 @@ object AwsAuthExample extends App {
 
   val k8sConfig = Configuration(clusters = Map(clusterName -> cluster), contexts = Map(clusterName -> context)).useContext(context)
 
-  val k8s: KubernetesClient = k8sInit(k8sConfig)
+  val k8s: KubernetesClient = k8sInit(k8sConfig)(as)
   listPods(namespace, 0)
   listPods(namespace, 5)
   listPods(namespace, 11)
@@ -43,3 +48,4 @@ object AwsAuthExample extends App {
     println(pods.items.map(_.name))
   }
 }
+

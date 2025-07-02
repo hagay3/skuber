@@ -1,22 +1,24 @@
 package skuber.api
 
-import java.net.URL
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import scala.collection.JavaConverters._
-import scala.util.Try
-import scala.util.Failure
-import java.util.{Base64, Date}
 import org.yaml.snakeyaml.Yaml
 import skuber.Namespace
 import skuber.api.client._
+import skuber.api.client.token.{ExecAuthConfig, ExecAuthRefreshable, FileTokenAuthRefreshable, FileTokenConfiguration}
+import skuber.config.SkuberConfig
+import java.net.URL
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.util
+import java.util.{Base64, Date}
+import scala.collection.JavaConverters._
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.io.Source
+import scala.util.{Failure, Try}
 
 /**
  * @author David O'Riordan
  */
-case class Configuration(
-      clusters: Map[String, Cluster] = Map(),
+case class Configuration(clusters: Map[String, Cluster] = Map(),
       contexts: Map[String, Context] = Map(),
       currentContext: Context = Context(),
       users: Map[String, AuthInfo] = Map()) {
@@ -35,8 +37,7 @@ object Configuration {
   lazy val useLocalProxyDefault: Configuration = {
     val defaultCluster=Cluster()
     val defaultContext=Context(cluster=defaultCluster)
-    Configuration(
-      clusters = Map("default" -> defaultCluster),
+    Configuration(clusters = Map("default" -> defaultCluster),
       contexts= Map("default" -> defaultContext),
       currentContext = defaultContext)
   }
@@ -53,8 +54,7 @@ object Configuration {
     val clusterAddress=s"http://localhost:${port.toString}"
     val defaultCluster=Cluster(server = clusterAddress)
     val defaultContext=Context(cluster=defaultCluster)
-    Configuration(
-      clusters = Map("default" -> defaultCluster),
+    Configuration(clusters = Map("default" -> defaultCluster),
       contexts= Map("default" -> defaultContext),
       currentContext = defaultContext)
   }
@@ -64,8 +64,7 @@ object Configuration {
     val clusterAddress=proxyAddress
     val defaultCluster=Cluster(server = clusterAddress)
     val defaultContext=Context(cluster=defaultCluster)
-    Configuration(
-      clusters = Map("default" -> defaultCluster),
+    Configuration(clusters = Map("default" -> defaultCluster),
       contexts= Map("default" -> defaultContext),
       currentContext = defaultContext)
   }
@@ -154,13 +153,11 @@ object Configuration {
 
 
         def toK8SCluster(clusterConfig: YamlMap, clusterName: String) =
-          Cluster(
-            apiVersion=valueAt(clusterConfig, "api-version", Some("v1")),
+          Cluster(apiVersion=valueAt(clusterConfig, "api-version", Some("v1")),
             server=valueAt(clusterConfig,"server",Some("http://localhost:8001")),
             insecureSkipTLSVerify=valueAt(clusterConfig,"insecure-skip-tls-verify",Some(false)),
             certificateAuthority=pathOrDataValueAt(clusterConfig, "certificate-authority","certificate-authority-data"),
-            clusterName = Some(clusterName)
-          )
+            clusterName = Some(clusterName))
 
 
         val k8sClusterMap = topLevelYamlToK8SConfigMap("cluster", toK8SCluster)
@@ -173,15 +170,37 @@ object Configuration {
               case "oidc" =>
                 Some(OidcAuth(idToken = valueAt(config, "id-token")))
               case "gcp" =>
-                Some(
-                  GcpAuth(
-                    accessToken = optionalValueAt(config, "access-token"),
+                Some(GcpAuth(accessToken = optionalValueAt(config, "access-token"),
                     expiry = optionalInstantValueAt(config, "expiry"),
                     cmdPath = valueAt(config, "cmd-path"),
-                    cmdArgs = valueAt(config, "cmd-args")
-                  )
-                )
+                    cmdArgs = valueAt(config, "cmd-args")))
               case _ => None
+            }
+          }
+
+          def parseExecConfig(userConfig: YamlMap): Option[ExecAuthRefreshable] = {
+            optionalValueAt[YamlMap](userConfig, "exec").flatMap { yamlExec =>
+              val args = optionalValueAt[util.ArrayList[String]](yamlExec, "args").map(_.asScala.toList).getOrElse(List.empty)
+              val env = optionalValueAt[util.ArrayList[util.Map[String, String]]](yamlExec, "env").map(_.asScala.toList.map(_.asScala.toMap)).getOrElse(List.empty)
+              val envVariables = env.flatMap { envSingle =>
+                val nameOpt = envSingle.get("name")
+                val valueOpt = envSingle.get("value")
+                (nameOpt, valueOpt) match {
+                  case (Some(name), Some(value)) => Some(name -> value)
+                  case _ => None
+                }
+              }.toMap
+
+              val commandOpt: Option[String] = optionalValueAt[String](yamlExec, "command")
+
+              commandOpt.map { command =>
+                val config = ExecAuthConfig(
+                  cmd = command,
+                  args = args,
+                  envVariables = envVariables
+                )
+                ExecAuthRefreshable(config)
+              }
             }
           }
 
@@ -204,7 +223,11 @@ object Configuration {
               }
           }
 
-          maybeAuth.getOrElse(NoAuth)
+          val maybeExecAuth = maybeAuth orElse  {
+            parseExecConfig(userConfig)
+          }
+
+          maybeExecAuth.getOrElse(NoAuth)
         }
         val k8sAuthInfoMap = topLevelYamlToK8SConfigMap("user", toK8SAuthInfo)
 
@@ -233,13 +256,11 @@ object Configuration {
     * <p>Follows official golang client logic
     *
     * @return Try[Configuration]
-    *
-    * @see https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/#accessing-the-api-from-a-pod
+    * @see https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/
     *      https://github.com/kubernetes/client-go/blob/master/rest/config.go#L313
     *      https://github.com/kubernetes-client/java/blob/master/util/src/main/java/io/kubernetes/client/util/ClientBuilder.java#L134
     */
   lazy val inClusterConfig: Try[Configuration] = {
-
     val rootK8sFolder = "/var/run/secrets/kubernetes.io/serviceaccount"
     val tokenPath     = s"$rootK8sFolder/token"
     val namespacePath = s"$rootK8sFolder/namespace"
@@ -261,6 +282,8 @@ object Configuration {
     //"Expected to load root CA config from %s, but got err: %v", rootCAFile, err)
     lazy val ca: Option[PathOrData] = if (Files.exists(Paths.get(caPath))) Some(Left(caPath)) else None
 
+    lazy val refreshTokenInterval: Duration = SkuberConfig.load().getDuration("in-config.refresh-token-interval", 5.minutes)
+
     for {
       host      <- maybeHost
       port      <- maybePort
@@ -268,12 +291,12 @@ object Configuration {
       namespace <- maybeNamespace
       hostPort  = s"https://$host${if (port.length > 0) ":" + port else ""}"
       cluster   = Cluster(server = hostPort, certificateAuthority = ca)
-      ctx       = Context(cluster, TokenAuth(token), Namespace.forName(namespace))
-    } yield Configuration(
-      clusters = Map("default" -> cluster),
+      ctx       = Context(cluster = cluster,
+        authInfo = FileTokenAuthRefreshable(FileTokenConfiguration(cachedAccessToken= Some(token), tokenPath = tokenPath, refreshTokenInterval)),
+        namespace = Namespace.forName(namespace))
+    } yield Configuration(clusters = Map("default" -> cluster),
       contexts = Map("default" -> ctx),
-      currentContext = ctx
-    )
+      currentContext = ctx)
   }
 
   /*
@@ -304,12 +327,9 @@ object Configuration {
             }.getOrElse {
               // Try to get config from a running pod
               // if that is not set then use default kubeconfig location
-              Configuration.inClusterConfig.orElse(
-                Configuration.parseKubeconfigFile()
-              )
+              Configuration.inClusterConfig.orElse(Configuration.parseKubeconfigFile())
             }.get
         }
     }
   }
-
 }

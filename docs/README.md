@@ -13,15 +13,37 @@
 
 </br>
 
++ Usage
+  * [Quick Start](#quick-start)
+  * [Release](#release)
+  * [Configuration](#configuration)
+  * [Basic imports](#basic-imports)
 
-## Quick start
++ Code Examples
+  * [List pods example](#list-pods-example)
+  * [List Namespaces](#list-namespaces)
+  * [Create Pod](#create-pod)
+  * [Create deployment](#create-deployment)
+
++ Features
+  * [API Method Summary](#api-method-summary)
+  * [Refresh EKS (AWS) Token](#refresh-eks-aws-token)
+  * [Label Selectors](#label-selectors)
+  * [Safely shutdown the client](#safely-shutdown-the-client)
+
++ Architecture
+  * [Data Model Overview](#data-model-overview)
+  * [Fluent API](#fluent-api)
+  * [JSON Mapping](#json-mapping)
+
+## Quick Start
 
 This example lists pods in `kube-system` namespace:
 
 ```scala
 import skuber._
 import skuber.json.format._
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import scala.util.{Success, Failure}
 
 implicit val system = ActorSystem()
@@ -32,10 +54,11 @@ k8s.list[PodList](Some("kube-system"))
 ```
 ## Release
 
-You can use the latest release (for 2.12 or 2.13) by adding to your build:
+You can use the latest release by adding to your build:
+- Scala 3.2, 2.13, 2.12 support
 
 ```scala
-libraryDependencies += "io.github.hagay3" %% "skuber" % "2.7.6"
+libraryDependencies += "io.github.hagay3" %% "skuber" % "4.0.2"
 ```
 
 ## Configuration
@@ -62,7 +85,7 @@ Set the env variables with cluster details.
 ```scala
 import skuber.api.client.{Cluster, Context, KubernetesClient}
 import java.util.Base64
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 val namespace = System.getenv("namespace")
 val serverUrl = System.getenv("serverUrl")
@@ -77,6 +100,63 @@ implicit val as = ActorSystem()
 val k8s: KubernetesClient = k8sInit(k8sConfig)
 ```
 
+### In Cluster configuration
+[kubernetes.io/access-api-from-pod](https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/)
+
+Using in-cluster configuration with skuber example:
+
+```bash
+export KUBERNETES_SERVICE_HOST=kubernetes.default.svc
+export KUBERNETES_SERVICE_PORT=443
+```
+
+```scala
+object InClusterConfigurationExample extends App {
+  implicit private val as: ActorSystem = ActorSystem()
+  implicit private val ex: ExecutionContextExecutor = as.dispatcher
+  Configuration.inClusterConfig match {
+    case Success(k8sConfig) =>
+      val k8s: KubernetesClient = k8sInit(k8sConfig)(as)
+
+      getApiVersions(0)
+      getApiVersions(5)
+      getApiVersions(11)
+
+      k8s.close
+      Await.result(as.terminate(), 10.seconds)
+      System.exit(0)
+
+      def getApiVersions(minutesSleep: Int): Unit = {
+        println(s"Sleeping $minutesSleep minutes...")
+        Thread.sleep(minutesSleep * 60 * 1000)
+        println(DateTime.now)
+        val apiVersions = Await.result(k8s.getServerAPIVersions, 10.seconds)
+        println(apiVersions.mkString(","))
+      }
+    case Failure(ex) =>
+      throw ex
+      System.exit(0)
+  }
+}
+```
+
+
+#### Refresh token (in-cluster configuration)
+
+Skuber with in-cluster config, reloads by default the token from disk every 5 minutes.
+
+Since kubernetes 1.21 the service account tokens have changed to bound service account tokens (See: [Bound Service Account Token Volume](https://kubernetes.io/docs/reference/access-authn-authz/service-accounts-admin/#bound-service-account-token-volume)). The service account token needs to be refreshed and reloaded periodically from disk.
+
+
+The refresh token interval can be changed updating the following configuration property:
+
+```config
+skuber {
+  in-config {
+    refresh-token-interval = 5m
+  }
+}
+```
 
 
 ### Overriding URL / Use Proxy URL
@@ -92,9 +172,9 @@ If the cluster URL is set this way, then the `SKUBER_CONFIG` and `KUBECONFIG` en
 ### Config load order
 
 Skuber supports both out-of-cluster and in-cluster configurations.
-Сonfiguration algorithm can be described as follows:
+Configuration algorithm can be described as follows:
 
-Initiailly Skuber tries out-of-cluster methods in sequence (stops on first successful):
+Initially Skuber tries out-of-cluster methods in sequence (stops on first successful):
  1. Read `SKUBER_URL` environment variable and use it as kubectl proxy url. If not set then:
  2. Read `SKUBER_CONFIG` environment variable and if is equal to:
     * `file`  - Skuber will read `~/.kube/config` and use it as configuration source
@@ -104,6 +184,8 @@ Initiailly Skuber tries out-of-cluster methods in sequence (stops on first succe
 
 
 If all above fails Skuber tries [in-cluster configuration method](https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/#accessing-the-api-from-a-pod)
+
+
 
 
 
@@ -126,7 +208,7 @@ For client authentication **client certificates** (cert and private key pairs) c
 import skuber._
 import skuber.json.format._
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 implicit val system = ActorSystem()
 implicit val dispatcher = system.dispatcher
@@ -277,7 +359,7 @@ val stsFut = k8s.jsonMergePatch(myStatefulSet, patchStr)
 See also the `PatchExamples` example. Note: There is no patch support yet for the other two (`json patch` and `strategic merge patch`) [strategies](https://github.com/kubernetes/community/blob/master/contributors/devel/api-conventions.md#patch-operations)
 
 ### Logs
-Get the logs of a pod (as an Akka Streams Source):
+Get the logs of a pod (as an Pekko Streams Source):
 
 ```scala
 val helloWorldLogsSource: Future[Source[ByteString, _]]  = k8s.getPodLogSource("hello-world-pod", Pod.LogQueryParams())
@@ -308,15 +390,15 @@ val allPodsMapFut: Future[Map[String, PodList]] = k8s listByNamespace[PodList]()
 
 ### Watch API
 
-Kubernetes supports the ability for API clients to watch events on specified resources - as changes occur to the resource(s) on the cluster, Kubernetes sends details of the updates to the watching client. Skuber v2 now uses Akka streams for this (instead of Play iteratees as used in the Skuber v1.x releases), so the `watch[O]` API calls return `Future[Source[O]]` objects which can then be plugged into Akka flows.
+Kubernetes supports the ability for API clients to watch events on specified resources - as changes occur to the resource(s) on the cluster, Kubernetes sends details of the updates to the watching client. Skuber v2 now uses Pekko streams for this (instead of Play iteratees as used in the Skuber v1.x releases), so the `watch[O]` API calls return `Future[Source[O]]` objects which can then be plugged into Pekko flows.
 
 ```scala
 import skuber._
 import skuber.json.format._
 import skuber.apps.v1.Deployment
 
-import akka.actor.ActorSystem
-import akka.stream.scaladsl.Sink
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.scaladsl.Sink
 
 object WatchExamples {
   implicit val system = ActorSystem()
@@ -335,7 +417,7 @@ object WatchExamples {
 }
 ```
 
-The above example creates a Watch on the frontend deployment, and feeds the resulting events into an Akka sink that simply prints out the replica count from the current version of the deployment as included in each event. To test the above code, call the watchFrontendScaling method to create the watch and then separately run a number of [kubectl scale](https://kubernetes.io/docs/tutorials/kubernetes-basics/scale-interactive/) commands to set different replica counts on the frontend - for example:
+The above example creates a Watch on the frontend deployment, and feeds the resulting events into an Pekko sink that simply prints out the replica count from the current version of the deployment as included in each event. To test the above code, call the watchFrontendScaling method to create the watch and then separately run a number of [kubectl scale](https://kubernetes.io/docs/tutorials/kubernetes-basics/scale-interactive/) commands to set different replica counts on the frontend - for example:
 ```bash
 kubectl scale --replicas=1 deployment/frontend
 kubectl scale --replicas=10 deployment/frontend
@@ -396,7 +478,7 @@ The following example emulates that described [here](http://kubernetes.io/docs/u
 Initial creation of the deployment:
 ```scala
 val nginxLabel = "app" -> "nginx"
-val nginxContainer = Container("nginx",image="nginx:1.7.9").exposePort(80)
+val nginxContainer = Container("nginx",image="nginx:1.27.0").exposePort(80)
 
 val nginxTemplate = Pod.Template.Spec
  .named("nginx")
@@ -476,12 +558,107 @@ Contains the `Role`,`RoleBinding`,`ClusterRole` and `ClusterRoleBinding` kinds -
 ***apiextensions***
 
 Currently supports one kind - the `CustomResourceDefinition` kind introduced in Kubernetes V1.7 (as successor to the now deprecated `Third Party Resources` kind, which is not supported in Skuber).
+Two versions of the `CustomResourceDefinition` API are supported currently:
+- `v1beta1` - deprecated in Kubernetes v1.16 in favour of `v1`, no longer served as of v1.22.
+- `v1` - available since Kubernetes v1.16. **If possible, use this version**.
+
+See the CustomResourceDefinition examples in the examples submodule in this project, and the [K8s v1 CRD API version changes here](https://kubernetes.io/docs/reference/using-api/deprecation-guide/#customresourcedefinition-v122) for information about the differences between the two versions of `CustomResourceDefinition`.
 
 ***networking***
 
 Supports `NetworkPolicy` resources (for Kubernetes v1.7 and above) - see Kubernetes [Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/) documentation.
 
 [Custom Resources](https://kubernetes.io/docs/concepts/api-extension/custom-resources/) are a powerful feature which enable Kubernetes clients to define and use their own custom resources to be treated in the same way as built-in kinds. They are useful for building Kubernetes operators and other advanced use cases. See the `CustomResourceSpec.scala` integration test which demonstrates how to use them in skuber.
+
+### Dynamic Kubernetes Client
+Dynamic Kubernetes Client is a client that can be used to interact with Kubernetes resources without having to define the resource types in the client.
+
+It is useful for interacting with resources that are not yet supported by skuber or for interacting with resources that are not known at compile time.
+
+Code example for using Dynamic Kubernetes Client `DynamicKubernetesClientImpl`
+
+```scala
+import java.util.UUID.randomUUID
+import org.apache.pekko.actor.ActorSystem
+import play.api.libs.json.Json
+import skuber.api.dynamic.client.impl.{DynamicKubernetesClientImpl, JsonRaw}
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContextExecutor}
+
+object DynamicKubernetesClientImplExample extends App {
+
+  implicit val system: ActorSystem = ActorSystem()
+  implicit val dispatcher: ExecutionContextExecutor = system.dispatcher
+
+  private val deploymentName1: String = randomUUID().toString
+
+  private val kubernetesDynamicClient = DynamicKubernetesClientImpl.build()
+
+  private val createDeploymentInput = Json.parse {
+    s"""
+       {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "metadata": {
+          "name": "$deploymentName1"
+        },
+        "spec": {
+          "replicas": 1,
+          "selector": {
+            "matchLabels": {
+              "app": "nginx"
+            }
+          },
+          "template": {
+            "metadata": {
+              "name": "nginx",
+              "labels": {
+                "app": "nginx"
+              }
+            },
+            "spec": {
+              "containers": [
+                {
+                  "name": "nginx",
+                  "image": "nginx:1.27.0",
+                  "ports": [
+                    {
+                      "containerPort": 80,
+                      "protocol": "TCP"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      }""".stripMargin
+  }
+
+
+  private val createdDeployment = kubernetesDynamicClient.create(JsonRaw(createDeploymentInput), resourcePlural = "deployments")
+
+  val nameF = createdDeployment.flatMap { _ =>
+    val getDeployment = kubernetesDynamicClient.get(
+      deploymentName1,
+      apiVersion = "apps/v1",
+      resourcePlural = "deployments")
+    getDeployment.map(_.metadata.map(_.name))
+  }
+
+  Await.result(nameF, 30.seconds)
+
+  nameF.foreach { name =>
+    println(s"Deployment name: $name")
+  }
+
+  kubernetesDynamicClient.delete(deploymentName1, apiVersion = "apps/v1", resourcePlural = "deployments")
+
+  Await.result(system.terminate(), 10.seconds)
+
+}
+
+```
 
 ### Custom resource
 Code example for adding a resource that not exist in skuber.
@@ -492,7 +669,7 @@ Using [EventBus](https://github.com/argoproj-labs/argo-eventbus) from argocd for
 package skuber.examples.argo
 
 import java.util.UUID.randomUUID
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 import play.api.libs.functional.syntax.unlift
 import play.api.libs.json.{Format, JsPath, Json}
 import skuber.ResourceSpecification.{Names, Scope}
@@ -620,15 +797,15 @@ case class Status(
 [Create IAM Role](#create-iam-role) </br>
 [Create a service account](#create-a-service-account) </br>
 [Create the aws-auth mapping](#create-the-aws-auth-mapping) </br>
-[Skuber Code example](#skuber-code-example)
+[Refresh EKS Code Examples]([#refresh-eks-code-examples))
 
 ## Background
 Skuber has the functionality to refresh EKS (AWS) token with an IAM role and cluster configurations.
 
 The initiative:
 * Refreshing tokens increasing k8s cluster security
-* Since kubernetes v1.21 service account tokens has an expiration of 1 hour.
-  https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html#kubernetes-1.21
+* Since kubernetes v1.21 service account tokens has an expiration of 90 days.
+  https://docs.aws.amazon.com/eks/latest/userguide/service-accounts.html
 
 
 ## Step-by-step guide
@@ -746,7 +923,7 @@ Add the following mapping
 ```
 
 
-### Skuber Code example
+### Refresh EKS Code Examples
 * Set the environment variables according to `REMOTE_CLUSTER`
 ```bash
 export namespace=default

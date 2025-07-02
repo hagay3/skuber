@@ -1,17 +1,18 @@
 package skuber
 
 import java.util.UUID.randomUUID
-import akka.Done
-import akka.stream.scaladsl.{Sink, Source}
+import org.apache.pekko.Done
+import org.apache.pekko.stream.scaladsl.{Sink, Source}
 import org.scalatest.concurrent.{Eventually, ScalaFutures}
-import org.scalatest.{BeforeAndAfterAll, Matchers}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
 import skuber.FutureUtil.FutureOps
 import skuber.json.format._
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Future, Promise}
 
 
-class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAfterAll with ScalaFutures {
+class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAfterAll with ScalaFutures with TestRetry {
   def getPodName: String = randomUUID().toString
   val namespace1: String = randomUUID().toString
   override implicit val patienceConfig: PatienceConfig = PatienceConfig(10.second)
@@ -27,8 +28,7 @@ class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAf
 
   override def afterAll(): Unit = {
     val k8s = k8sInit
-    val results = Future.sequence(
-      List(podName1, podName2, podName3, podName4, podName5, podName6).map { name =>
+    val results = Future.sequence(List(podName1, podName2, podName3, podName4, podName5, podName6).map { name =>
         k8s.delete[Pod](name).withTimeout().recover { case _ => () }
       }).withTimeout()
     results.futureValue
@@ -42,7 +42,7 @@ class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAf
 
   it should "execute a command in the running pod" in { k8s =>
     println("START: execute a command in the running pod")
-    k8s.create(getNginxPod(podName1, "1.7.9")).valueT
+    k8s.create(getNginxPod(podName1, "1.27.0")).valueT
     Thread.sleep(5000)
 
     eventually(timeout(30.seconds), interval(3.seconds)) {
@@ -60,7 +60,7 @@ class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAf
 
   it should "execute a command in the specified container of the running pod" in { k8s =>
     println("START: execute a command in the specified container of the running pod")
-    k8s.create(getNginxPod(podName2, "1.7.9")).valueT
+    k8s.create(getNginxPod(podName2, "1.27.0")).valueT
     Thread.sleep(5000)
 
     eventually(timeout(30.seconds), interval(3.seconds)) {
@@ -79,7 +79,7 @@ class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAf
 
   it should "execute a command that outputs to stderr in the running pod" in { k8s =>
     println("START: execute a command that outputs to stderr in the running pod")
-    k8s.create(getNginxPod(podName3, "1.7.9")).valueT
+    k8s.create(getNginxPod(podName3, "1.27.0")).valueT
     Thread.sleep(5000)
     var output = ""
     val stdout: Sink[String, Future[Done]] = Sink.foreach(output += _)
@@ -96,7 +96,7 @@ class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAf
   it should "execute a command in an interactive shell of the running pod - specific namespace" in { k8s =>
     println("START: execute a command in an interactive shell of the running pod")
     createNamespace(namespace1, k8s)
-    k8s.create(getNginxPod(podName4, "1.7.9"), namespace = Some(namespace1)).valueT
+    k8s.create(getNginxPod(podName4, "1.27.0"), namespace = Some(namespace1)).valueT
     Thread.sleep(5000)
     val stdin = Source.single("whoami\n")
     var output = ""
@@ -115,7 +115,7 @@ class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAf
 
   it should "throw an exception without stdin, stdout nor stderr in the running pod" in { k8s =>
     println("START: throw an exception without stdin, stdout nor stderr in the running pod")
-    k8s.create(getNginxPod(podName5, "1.7.9")).valueT
+    k8s.create(getNginxPod(podName5, "1.27.0")).valueT
     Thread.sleep(5000)
     whenReady {
       val res = k8s.exec(podName5, Seq("whoami")).withTimeout().failed
@@ -132,11 +132,9 @@ class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAf
 
   it should "throw an exception against an unexisting pod" in { k8s =>
     println("START: throw an exception against an unexisting pod")
-    k8s.create(getNginxPod(podName6, "1.7.9")).valueT
+    k8s.create(getNginxPod(podName6, "1.27.0")).valueT
     Thread.sleep(5000)
-    whenReady(
-      k8s.exec(podName6 + "x", Seq("whoami")).withTimeout().failed
-    ) { result =>
+    whenReady(k8s.exec(podName6 + "x", Seq("whoami")).withTimeout().failed) { result =>
       println("FINISH: throw an exception against an unexisting pod")
       result shouldBe a[K8SException]
       result match {

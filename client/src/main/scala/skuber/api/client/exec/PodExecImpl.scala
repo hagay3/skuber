@@ -1,14 +1,14 @@
 package skuber.api.client.exec
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model.headers.RawHeader
-import akka.http.scaladsl.model.{HttpHeader, StatusCodes, Uri, ws}
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.http.scaladsl.{ConnectionContext, Http}
-import akka.stream.SinkShape
-import akka.stream.scaladsl.{Flow, GraphDSL, Keep, Partition, Sink, Source}
-import akka.util.ByteString
-import akka.{Done, NotUsed}
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.http.scaladsl.model.headers.RawHeader
+import org.apache.pekko.http.scaladsl.model.{HttpHeader, StatusCodes, Uri, ws}
+import org.apache.pekko.http.scaladsl.unmarshalling.Unmarshal
+import org.apache.pekko.http.scaladsl.{ConnectionContext, Http}
+import org.apache.pekko.stream.SinkShape
+import org.apache.pekko.stream.scaladsl.{Flow, GraphDSL, Keep, Partition, Sink, Source}
+import org.apache.pekko.util.ByteString
+import org.apache.pekko.{Done, NotUsed}
 import play.api.libs.json.JsString
 import skuber.api.client.impl.KubernetesClientImpl
 import skuber.api.client.{K8SException, LoggingContext, Status}
@@ -21,8 +21,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
  */
 object PodExecImpl {
 
-  private[client] def exec(
-                            requestContext: KubernetesClientImpl,
+  private[client] def exec(requestContext: KubernetesClientImpl,
                             podName: String,
                             command: Seq[String],
                             maybeContainerName: Option[String] = None,
@@ -38,12 +37,10 @@ object PodExecImpl {
     requestContext.log.info(s"Trying to connect to container ${containerPrintName} of pod ${podName}")
 
     // Compose queries
-    var queries: Seq[(String, String)] = Seq(
-      "stdin" -> maybeStdin.isDefined.toString,
+    var queries: Seq[(String, String)] = Seq("stdin" -> maybeStdin.isDefined.toString,
       "stdout" -> maybeStdout.isDefined.toString,
       "stderr" -> maybeStderr.isDefined.toString,
-      "tty" -> tty.toString
-    )
+      "tty" -> tty.toString)
     maybeContainerName.foreach { containerName =>
       queries ++= Seq("container" -> containerName)
     }
@@ -130,7 +127,7 @@ object PodExecImpl {
       requestContext.log.info(s"Connected to container ${containerPrintName} of pod ${podName}")
       close.future.foreach { _ =>
         requestContext.log.info(s"Close the connection of container ${containerPrintName} of pod ${podName}")
-        promise.success(None)
+        promise.trySuccess(None)
       }
     }
     Future.sequence(Seq(connected, close.future, promise.future)).map { _ => () }

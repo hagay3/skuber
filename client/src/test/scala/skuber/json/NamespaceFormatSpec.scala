@@ -1,5 +1,6 @@
 package skuber.json
-
+import skuber.json.format.namespaceFormat
+import skuber.json.format.nsSpecFormat
 import org.specs2.mutable.Specification // for unit-style testing
 import org.specs2.execute.Result
 import org.specs2.execute.Failure
@@ -104,7 +105,7 @@ class NamespaceFormatSpec extends Specification {
             labels("three") mustEqual "four"
             val annots=ns.metadata.annotations
             annots("abc") mustEqual "def"
-            val res2 = Json.fromJson[Namespace](Json.toJson(ns))
+            val res2 = Json.fromJson[Namespace](Json.toJson(ns)(namespaceFormat))(namespaceFormat)
             res2 match {
               case JsSuccess(ns2, path) => ns2.metadata.deletionTimestamp.get mustEqual ns.metadata.deletionTimestamp.get
               case JsError(e) => Failure(e.toString)

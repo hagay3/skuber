@@ -1,51 +1,59 @@
 import sbtassembly.AssemblyKeys.assembly
 import sbtassembly.{MergeStrategy, PathList}
-import xerial.sbt.Sonatype._
+import sbtghactions.WorkflowStep.Use
+import xerial.sbt.Sonatype.*
+import sbtrelease.ReleasePlugin.autoImport.*
+import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations.*
+import sbtrelease.{Version, versionFormatError}
+
 resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases/"
 
 val scala12Version = "2.12.13"
-val scala13Version = "2.13.6"
+val scala13Version = "2.13.12"
+val scala3Version = "3.3.1"
+
 val currentScalaVersion = scala13Version
-val supportedScalaVersion = Seq(scala12Version, scala13Version)
 
-val akkaVersion = "2.6.19"
+ThisBuild / scalaVersion := currentScalaVersion
 
-val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.15.4"
+val supportedScalaVersion = Seq(scala12Version, scala13Version, scala3Version)
 
-val specs2 = "org.specs2" %% "specs2-core" % "4.16.1"
-val scalaTest = "org.scalatest" %% "scalatest" % "3.0.9"
+val pekkoVersion = "1.0.2"
 
-val mockito = "org.mockito" % "mockito-core" % "4.6.1"
+val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.17.1"
 
-val akkaStreamTestKit = "com.typesafe.akka" %% "akka-stream-testkit" % akkaVersion
+val specs2 = "org.specs2" %% "specs2-core" % "4.20.5"
+val scalaTest = "org.scalatest" %% "scalatest" % "3.2.17"
+
+val pekkoStreamTestKit = ("org.apache.pekko" %% "pekko-stream-testkit" % pekkoVersion).cross(CrossVersion.for3Use2_13)
 
 
-val snakeYaml =  "org.yaml" % "snakeyaml" % "1.30"
+val snakeYaml = "org.yaml" % "snakeyaml" % "2.0"
 
-val commonsIO = "commons-io" % "commons-io" % "2.11.0"
+val commonsIO = "commons-io" % "commons-io" % "2.16.1"
 val commonsCodec = "commons-codec" % "commons-codec" % "1.15"
-val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.71"
+val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.78.1"
+val ionJava = "com.amazon.ion" % "ion-java" % "1.10.5"
 
 
-// the client API request/response handing uses Akka Http
-val akkaHttp = "com.typesafe.akka" %% "akka-http" % "10.2.9"
-val akkaStream = "com.typesafe.akka" %% "akka-stream" % akkaVersion
-val akka = "com.typesafe.akka" %% "akka-actor" % akkaVersion
+// the client API request/response handing uses Pekko Http
+val pekkoHttp = ("org.apache.pekko" %% "pekko-http" % "1.0.1").cross(CrossVersion.for3Use2_13)
+val pekkoStream = ("org.apache.pekko" %% "pekko-stream" % pekkoVersion).cross(CrossVersion.for3Use2_13)
+val pekko = ("org.apache.pekko" %% "pekko-actor" % pekkoVersion).cross(CrossVersion.for3Use2_13)
 
-// Skuber uses akka logging, so the examples config uses the akka slf4j logger with logback backend
-val akkaSlf4j = "com.typesafe.akka" %% "akka-slf4j" % akkaVersion
-val logback = "ch.qos.logback" % "logback-classic" % "1.2.11" % Runtime
+// Skuber uses pekko logging, so the examples config uses the pekko slf4j logger with logback backend
+val pekkoSlf4j = ("org.apache.pekko" %% "pekko-slf4j" % pekkoVersion).cross(CrossVersion.for3Use2_13)
+val logback = "ch.qos.logback" % "logback-classic" % "1.4.6" % Runtime
 
 // the Json formatters are based on Play Json
-val playJson = "com.typesafe.play" %% "play-json" % "2.9.2"
-val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.3"
+val playJson = "com.typesafe.play" %% "play-json" % "2.10.0-RC7"
+val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5"
+
 
 val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.638"
 val awsJavaSdkSts = "com.amazonaws" % "aws-java-sdk-sts" % "1.12.638"
-val apacheCommonsLogging = "commons-logging" % "commons-logging" % "1.2"
+val apacheCommonsLogging = "commons-logging" % "commons-logging" % "1.3.4"
 
-// Need Java 8 or later as the java.time package is used to represent K8S timestamps
-scalacOptions += "-target:jvm-1.8"
 
 Test / scalacOptions ++= Seq("-Yrangepos")
 
@@ -58,7 +66,7 @@ ThisBuild / licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENS
 ThisBuild / homepage := Some(url("https://github.com/hagay3"))
 
 publishTo := sonatypePublishToBundle.value
-sonatypeCredentialHost := Sonatype.sonatype01
+sonatypeCredentialHost := sonatypeCentralHost
 ThisBuild / updateOptions := updateOptions.value.withGigahorse(false)
 
 sonatypeProjectHosting := Some(GitHubHosting("hagay3", "skuber", "hagay3@gmail.com"))
@@ -70,7 +78,7 @@ ThisBuild / scmInfo := Some(
   )
 )
 
-ThisBuild / developers  := List(Developer(id="hagay3", name="Hagai Ovadia", email="hagay3@gmail.com", url=url("https://github.com/hagay3")))
+ThisBuild / developers := List(Developer(id = "hagay3", name = "Hagai Ovadia", email = "hagay3@gmail.com", url = url("https://github.com/hagay3")))
 
 lazy val commonSettings = Seq(
   organization := "io.github.hagay3",
@@ -79,18 +87,24 @@ lazy val commonSettings = Seq(
   publishLocalConfiguration := publishLocalConfiguration.value.withOverwrite(true),
   pomIncludeRepository := { _ => false },
   Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Flat,
-  sonatypeCredentialHost := Sonatype.sonatype01
+  sonatypeCredentialHost := Sonatype.sonatype01,
+  releaseNextVersion := {
+    ver => Version(ver).map(_.bump(releaseVersionBump.value).string).getOrElse(versionFormatError(ver))
+  },
+  versionScheme := Some("early-semver"),
+  releaseProcess := nextVersionSteps,
+  asciiGraphWidth := 10000,
 )
 
 /** run the following command in order to generate github actions files:
- * sbt githubWorkflowGenerate && bash infra/ci/fix-workflows.sh
- */
+  * sbt githubWorkflowGenerate && bash infra/ci/fix-workflows.sh
+  */
 def workflowJobMinikube(jobName: String, k8sServerVersion: String, excludedTestsTags: List[String] = List.empty): WorkflowJob = {
 
   val finalSbtCommand: String = {
     val additionalFlags: String = {
       if (excludedTestsTags.nonEmpty) {
-        s"* -- -l ${excludedTestsTags.mkString(" ")}"
+        s"* -- ${excludedTestsTags.map(tag => s"-l $tag").mkString(" ")}"
       } else {
         ""
       }
@@ -100,17 +114,18 @@ def workflowJobMinikube(jobName: String, k8sServerVersion: String, excludedTests
   }
 
   WorkflowJob(
+    scalas = List(scala13Version),
     id = jobName,
     name = jobName,
     steps = List(
       WorkflowStep.Checkout,
       WorkflowStep.Use(
-        ref = UseRef.Public(owner = "manusa", repo = "actions-setup-minikube", ref = "v2.6.0"),
+        ref = UseRef.Public(owner = "manusa", repo = "actions-setup-minikube", ref = "v2.7.2"),
         params = Map(
-          "minikubeversion" -> "v1.25.2",
-          "kubernetesversion" -> k8sServerVersion,
-          "githubtoken" -> "${{ secrets.GITHUB_TOKEN }}",
-          "startargs" -> "--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle"),
+          "minikube version" -> "v1.25.2",
+          "kubernetes version" -> k8sServerVersion,
+          "github token" -> "${{ secrets.GITHUB_TOKEN }}",
+          "start args" -> "--extra-config=apiserver.disable-admission-plugins=ServiceAccount  --extra-config=apiserver.enable-admission-plugins=NamespaceLifecycle"),
         env = Map("SBT_OPTS" -> "-XX:+CMSClassUnloadingEnabled -XX:MaxPermSize=2G -Xmx8G -Xms6G")
       ),
       WorkflowStep.Sbt(List(finalSbtCommand))
@@ -118,43 +133,55 @@ def workflowJobMinikube(jobName: String, k8sServerVersion: String, excludedTests
   )
 }
 
+
 inThisBuild(List(
+  githubWorkflowJobSetup := List(Use(
+    UseRef.Public("actions", "checkout", "v4"),
+    name = Some("Checkout current branch (full)"),
+    params = Map("fetch-depth" -> "0", "token" -> "${{ secrets.PERSONAL_GITHUB_TOKEN }}"))) :::
+    WorkflowStep.SetupJava(githubWorkflowJavaVersions.value.toList) :::
+    githubWorkflowGeneratedCacheSteps.value.toList,
+  githubWorkflowJavaVersions := Seq(JavaSpec.temurin("17")),
   githubWorkflowBuildMatrixFailFast := Some(false),
   githubWorkflowScalaVersions := supportedScalaVersion,
   githubWorkflowPublishTargetBranches := Seq(RefPredicate.StartsWith(Ref.Tag("v"))),
   githubWorkflowTargetTags ++= Seq("v*"),
   githubWorkflowBuild := Seq(WorkflowStep.Sbt(List("test", "It/compile"))),
   githubWorkflowAddedJobs := Seq(
-    workflowJobMinikube(jobName = "integration-kubernetes-v1-19", k8sServerVersion = "v1.19.6"),
-    workflowJobMinikube(jobName = "integration-kubernetes-v1-20", k8sServerVersion = "v1.20.11"),
-    workflowJobMinikube(jobName = "integration-kubernetes-v1-21", k8sServerVersion = "v1.21.5"),
-    workflowJobMinikube(jobName = "integration-kubernetes-v1-22", k8sServerVersion = "v1.22.9", List("CustomResourceTag")),
+    workflowJobMinikube(jobName = "integration-kubernetes-v1-19", k8sServerVersion = "v1.19.6", List("HorizontalPodAutoscalerV2Tag")),
+    workflowJobMinikube(jobName = "integration-kubernetes-v1-20", k8sServerVersion = "v1.20.11", List("HorizontalPodAutoscalerV2Tag")),
+    workflowJobMinikube(jobName = "integration-kubernetes-v1-21", k8sServerVersion = "v1.21.5", List("HorizontalPodAutoscalerV2Tag")),
+    workflowJobMinikube(jobName = "integration-kubernetes-v1-22", k8sServerVersion = "v1.22.9", List("CustomResourceTag", "HorizontalPodAutoscalerV2Tag")),
     workflowJobMinikube(jobName = "integration-kubernetes-v1-23", k8sServerVersion = "v1.23.6", List("CustomResourceTag")),
     workflowJobMinikube(jobName = "integration-kubernetes-v1-24", k8sServerVersion = "v1.24.1", List("CustomResourceTag"))
   ),
   githubWorkflowPublish := Seq(
+    WorkflowStep.Sbt(List("release with-defaults")),
     WorkflowStep.Sbt(
       List("ci-release"),
       env = Map(
         "PGP_PASSPHRASE" -> "${{ secrets.PGP_PASSPHRASE }}",
         "PGP_SECRET" -> "${{ secrets.PGP_SECRET }}",
         "SONATYPE_PASSWORD" -> "${{ secrets.SONATYPE_PASSWORD }}",
-        "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}")))))
+        "SONATYPE_USERNAME" -> "${{ secrets.SONATYPE_USERNAME }}")),
+    WorkflowStep.Run(
+      List("bash infra/ci/git-commit-and-push.sh")))))
 
+lazy val nextVersionSteps = Seq[ReleaseStep](inquireVersions, setNextVersion)
 
 lazy val skuberSettings = Seq(
   name := "skuber",
   libraryDependencies ++= Seq(
-    akkaHttp, akkaStream, playJson, snakeYaml, commonsIO, commonsCodec, bouncyCastle,
-    awsJavaSdkCore, awsJavaSdkSts, apacheCommonsLogging, jacksonDatabind,
-    scalaCheck % Test, specs2 % Test, mockito % Test, akkaStreamTestKit % Test,
+    pekkoHttp, pekkoStream, playJson, snakeYaml, commonsIO, commonsCodec, bouncyCastle,
+    awsJavaSdkCore, awsJavaSdkSts, apacheCommonsLogging, jacksonDatabind, ionJava,
+    scalaCheck % Test, specs2 % Test, pekkoStreamTestKit % Test,
     scalaTest % Test
   ).map(_.exclude("commons-logging", "commons-logging"))
 )
 
 lazy val examplesSettings = Seq(
   name := "skuber-examples",
-  libraryDependencies ++= Seq(akka, akkaSlf4j, logback)
+  libraryDependencies ++= Seq(pekko, pekkoSlf4j, logback, playJson)
 )
 
 // by default run the guestbook example when executing a fat examples JAR
@@ -162,11 +189,10 @@ lazy val examplesAssemblySettings = Seq(
   assembly / mainClass := Some("skuber.examples.guestbook.Guestbook")
 )
 
-root / publishArtifact := false
-
-lazy val root = (project in file("."))
+lazy val `skuber-project` = (project in file("."))
   .settings(commonSettings,
-    crossScalaVersions := Nil)
+    crossScalaVersions := Nil,
+    publishArtifact := false)
   .aggregate(skuber, examples)
 
 lazy val skuber = (project in file("client"))
@@ -176,7 +202,7 @@ lazy val skuber = (project in file("client"))
     crossScalaVersions := supportedScalaVersion,
     skuberSettings,
     Defaults.itSettings,
-    libraryDependencies += scalaTest % "it"
+    libraryDependencies ++= Seq(scalaTest % "it", playJson)
   )
 
 

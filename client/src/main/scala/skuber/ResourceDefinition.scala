@@ -1,9 +1,7 @@
 package skuber
 
-import play.api.libs.json.{Format, Json}
-import skuber.apiextensions.CustomResourceDefinition
-
-import scala.reflect.runtime.universe._
+import skuber.apiextensions.v1.{CustomResourceDefinition => V1Crd}
+import skuber.apiextensions.v1beta1.{CustomResourceDefinition => V1Beta1Crd}
 
 /**
   * @author David O'Riordan
@@ -28,28 +26,37 @@ object ResourceDefinition {
    * Generate a ResourceDefinition for a specific type from specified definition fields, or falling back to defaults
    * (such as class name for kind and reverse package name for group) where not specified.
    */
-  def apply[T <: TypeMeta](
-    kind: String,
+  def apply[T <: TypeMeta](kind: String,
     group: String,
     version: String = "v1",
     singular: Option[String] = None,
     plural: Option[String] = None,
     scope: ResourceSpecification.Scope.Value = ResourceSpecification.Scope.Namespaced,
     shortNames: List[String] = Nil,
-    subresources: Option[ResourceSpecification.Subresources] = None
-  ): ResourceDefinition[T] =
+    versions: List[ResourceSpecification.Version] = Nil,
+    subresources: Option[ResourceSpecification.Subresources] = None): ResourceDefinition[T] =
   {
     val singularStr=singular.getOrElse(kind.toLowerCase)
     val pluralStr=plural.getOrElse(s"${singularStr}s")
     val names=ResourceSpecification.Names(plural=pluralStr, singular = singularStr, kind = kind, shortNames = shortNames)
-    val defSpec=NonCoreResourceSpecification(group,Some(version), Nil, scope, names, subresources)
+    val defSpec=NonCoreResourceSpecification(group, Some(version), Some(versions), scope, names, subresources)
     new ResourceDefinition[T]{ override def spec= defSpec }
   }
 
   /*
-   * Generate a ResourceDefinition for a specific CustomResource type from the associated CRD
+   * Generate a ResourceDefinition for a specific CustomResource type from the associated beta CRD
    */
-  def apply[T <: TypeMeta](crd: CustomResourceDefinition): ResourceDefinition[T] = {
+  @deprecated("Pass a skuber.apiextensions.v1.CustomResourceDefinition instance")
+  def apply[T <: TypeMeta](crd: V1Beta1Crd): ResourceDefinition[T] = {
+    new ResourceDefinition[T] {
+      override def spec: ResourceSpecification = crd.spec
+    }
+  }
+
+  /*
+   * Generate a ResourceDefinition for a specific CustomResource type from the associated v1 GA CRD
+   */
+  def apply[T <: TypeMeta](crd: V1Crd): ResourceDefinition[T] = {
     new ResourceDefinition[T] {
       override def spec: ResourceSpecification = crd.spec
     }
