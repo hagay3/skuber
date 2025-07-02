@@ -65,7 +65,7 @@ ThisBuild / licenses := Seq("APL2" -> url("http://www.apache.org/licenses/LICENS
 ThisBuild / homepage := Some(url("https://github.com/hagay3"))
 
 publishTo := sonatypePublishToBundle.value
-sonatypeCredentialHost := "central.sonatype.com"
+sonatypeCredentialHost := sonatypeCentralHost
 ThisBuild / updateOptions := updateOptions.value.withGigahorse(false)
 
 sonatypeProjectHosting := Some(GitHubHosting("hagay3", "skuber", "hagay3@gmail.com"))
