@@ -32,7 +32,7 @@ val snakeYaml = "org.yaml" % "snakeyaml" % "2.0"
 
 val commonsIO = "commons-io" % "commons-io" % "2.16.1"
 val commonsCodec = "commons-codec" % "commons-codec" % "1.15"
-val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.78.1"
+val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.81"
 
 
 // the client API request/response handing uses Pekko Http
