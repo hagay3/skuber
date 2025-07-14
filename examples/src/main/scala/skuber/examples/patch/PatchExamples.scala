@@ -93,7 +93,7 @@ object PatchExamples extends App {
 
     Await.ready(cleanupRequested, Inf)
     println("Finishing up")
-    k8s.close
+    k8s.close()
     system.terminate()
   }
   scaleNginx

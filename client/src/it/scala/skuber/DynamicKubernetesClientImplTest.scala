@@ -31,7 +31,7 @@ class DynamicKubernetesClientImplTest extends K8SFixture with Eventually with Ma
     results.valueT
 
     results.onComplete { _ =>
-      k8s.close
+      k8s.close()
       system.terminate().recover { case _ => () }.valueT
     }
   }

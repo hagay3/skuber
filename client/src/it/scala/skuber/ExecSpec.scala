@@ -35,7 +35,7 @@ class ExecSpec extends K8SFixture with Eventually with Matchers with BeforeAndAf
 
     results.onComplete { _ =>
       deleteNamespace(namespace1, k8s)
-      k8s.close
+      k8s.close()
       system.terminate().recover { case _ => () }.valueT
     }
   }

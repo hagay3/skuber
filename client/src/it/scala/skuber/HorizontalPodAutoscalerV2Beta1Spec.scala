@@ -44,7 +44,7 @@ class HorizontalPodAutoscalerV2Beta1Spec extends K8SFixture with Eventually with
       _ <- results1
       _ <- results2
     } yield {
-      k8s.close
+      k8s.close()
       system.terminate().recover { case _ => () }.valueT
     }
 

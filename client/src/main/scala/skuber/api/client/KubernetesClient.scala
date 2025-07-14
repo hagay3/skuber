@@ -403,7 +403,7 @@ trait KubernetesClient {
   /**
     * Closes the client. Any requests to the client after this is called will be rejected.
     */
-  def close: Unit
+  def close(): Unit
 
   // Some parameters of the client that it may be useful for some applications to read
   val logConfig: LoggingConfig // the logging configuration for client requests
