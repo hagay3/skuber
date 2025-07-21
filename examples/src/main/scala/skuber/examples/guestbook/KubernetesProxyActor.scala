@@ -121,7 +121,7 @@ class KubernetesProxyActor extends Actor with ActorLogging {
     }
     
     case Close => {
-      k8s.close
+      k8s.close()
       System.out.println("Closed skuber client")
       system.terminate().foreach { f =>
         System.exit(0)

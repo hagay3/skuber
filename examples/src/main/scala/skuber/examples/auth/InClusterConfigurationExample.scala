@@ -25,7 +25,7 @@ object InClusterConfigurationExample extends App {
       getApiVersions(5)
       getApiVersions(11)
 
-      k8s.close
+      k8s.close()
       Await.result(as.terminate(), 10.seconds)
       System.exit(0)
 

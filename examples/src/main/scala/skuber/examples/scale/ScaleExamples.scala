@@ -152,7 +152,7 @@ object ScaleExamples extends App {
 
     Await.ready(autoscaleDone, Inf)
     println("Finishing up")
-    k8s.close
+    k8s.close()
     system.terminate()
   }
   scaleNginx

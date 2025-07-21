@@ -40,13 +40,13 @@ object CreateCRD extends App {
   saveCRDs onComplete {
     case Success(_) =>
       System.out.println("done!")
-      k8s.close
+      k8s.close()
       system.terminate().foreach { f =>
         System.exit(0)
       }
     case Failure(ex) =>
       System.err.println("Failed: " + ex)
-      k8s.close
+      k8s.close()
       system.terminate().foreach { f =>
         System.exit(1)
       }

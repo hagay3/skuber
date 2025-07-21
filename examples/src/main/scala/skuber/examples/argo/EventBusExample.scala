@@ -31,7 +31,7 @@ object EventBusExample extends App {
   }(dispatcher)
   Await.result(ls, 30.seconds)
 
-  k8s.close
+  k8s.close()
 
   Await.result(system.terminate(), 10.seconds)
 

@@ -25,7 +25,7 @@ trait K8SFixture extends FixtureAnyFlatSpec {
     try {
       test(k8s)
     } finally {
-      k8s.close
+      k8s.close()
     }
   }
 
