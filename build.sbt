@@ -33,7 +33,6 @@ val snakeYaml = "org.yaml" % "snakeyaml" % "2.0"
 val commonsIO = "commons-io" % "commons-io" % "2.16.1"
 val commonsCodec = "commons-codec" % "commons-codec" % "1.15"
 val bouncyCastle = "org.bouncycastle" % "bcpkix-jdk18on" % "1.78.1"
-val ionJava = "com.amazon.ion" % "ion-java" % "1.10.5"
 
 
 // the client API request/response handing uses Pekko Http
@@ -49,8 +48,8 @@ val logback = "ch.qos.logback" % "logback-classic" % "1.4.6" % Runtime
 val playJson = "com.typesafe.play" %% "play-json" % "2.10.0-RC7"
 val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5"
 
-val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.233"
-val awsJavaSdkSts = "com.amazonaws" % "aws-java-sdk-sts" % "1.12.233"
+val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.638"
+val awsJavaSdkSts = "com.amazonaws" % "aws-java-sdk-sts" % "1.12.638"
 val apacheCommonsLogging = "commons-logging" % "commons-logging" % "1.3.4"
 
 
@@ -172,7 +171,7 @@ lazy val skuberSettings = Seq(
   name := "skuber",
   libraryDependencies ++= Seq(
     pekkoHttp, pekkoStream, playJson, snakeYaml, commonsIO, commonsCodec, bouncyCastle,
-    awsJavaSdkCore, awsJavaSdkSts, apacheCommonsLogging, jacksonDatabind, ionJava,
+    awsJavaSdkCore, awsJavaSdkSts, apacheCommonsLogging, jacksonDatabind,
     scalaCheck % Test, specs2 % Test, pekkoStreamTestKit % Test,
     scalaTest % Test
   ).map(_.exclude("commons-logging", "commons-logging"))

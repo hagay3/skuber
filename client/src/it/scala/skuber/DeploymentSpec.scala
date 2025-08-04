@@ -52,7 +52,7 @@ class DeploymentSpec extends K8SFixture with Eventually with Matchers with Befor
       List(namespace1, namespace2, namespace3, namespace4, namespace5).foreach { name =>
         deleteNamespace(name, k8s)
       }
-      k8s.close
+      k8s.close()
       system.terminate().recover { case _ => () }.valueT
     }
 

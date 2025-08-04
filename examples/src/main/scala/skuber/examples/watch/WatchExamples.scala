@@ -50,7 +50,7 @@ object WatchExamples extends App {
   watchFrontEndScaling
 
   Thread.sleep(1200000) // watch for a lengthy time before closing the session
-  k8s.close
+  k8s.close()
   system.terminate().foreach { f =>
     System.exit(0)
   }

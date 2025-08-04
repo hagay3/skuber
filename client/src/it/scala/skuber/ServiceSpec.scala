@@ -44,7 +44,7 @@ class ServiceSpec extends K8SFixture with Eventually with BeforeAndAfterAll with
 
     results.onComplete { _ =>
       results2.onComplete { _ =>
-        k8s.close
+        k8s.close()
         system.terminate().recover { case _ => () }.valueT
       }
     }

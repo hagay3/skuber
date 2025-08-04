@@ -34,7 +34,7 @@ class WatchContinuouslySpec extends K8SFixture with Eventually with Matchers wit
     results.futureValue
 
     results.onComplete { _ =>
-      k8s.close
+      k8s.close()
       system.terminate().recover { case _ => () }.valueT
     }
 

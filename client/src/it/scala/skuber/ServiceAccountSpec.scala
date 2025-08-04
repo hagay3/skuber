@@ -45,7 +45,7 @@ class ServiceAccountSpec extends K8SFixture with Eventually with BeforeAndAfterA
 
     results.onComplete { _ =>
       results2.onComplete { _ =>
-        k8s.close
+        k8s.close()
         system.terminate().recover { case _ => () }.valueT
       }
     }

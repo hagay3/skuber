@@ -36,7 +36,7 @@ object AwsAuthExample extends App {
   listPods(namespace, 5)
   listPods(namespace, 11)
 
-  k8s.close
+  k8s.close()
   Await.result(as.terminate(), 10.seconds)
   System.exit(0)
 

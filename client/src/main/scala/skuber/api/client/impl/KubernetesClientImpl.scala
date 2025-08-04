@@ -602,7 +602,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
     PodExecImpl.exec(this, podName, command, maybeContainerName, maybeStdin, maybeStdout, maybeStderr, tty, maybeClose, namespace)
   }
 
-  override def close: Unit =
+  override def close(): Unit =
   {
     isClosed = true
     closeHook foreach {

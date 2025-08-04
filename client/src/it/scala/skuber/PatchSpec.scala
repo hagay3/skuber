@@ -33,7 +33,7 @@ class PatchSpec extends K8SFixture with Eventually with Matchers with BeforeAndA
 
     results.onComplete { _ =>
       deleteNamespace(namespace5, k8s)
-      k8s.close
+      k8s.close()
       system.terminate().recover { case _ => () }.valueT
     }
   }
