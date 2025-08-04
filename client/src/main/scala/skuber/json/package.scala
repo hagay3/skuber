@@ -472,7 +472,7 @@ package object format {
   }
   implicit val handlerFormat: Format[Handler] = Format(handlerReads, handlerWrites)
 
-  implicit val probeFormat: Format[Probe] = (JsPath.format[Handler] and
+  implicit val probeFormat: Format[Probe] = (JsPath.formatNullable[Handler] and
     (JsPath \ "initialDelaySeconds").formatMaybeEmptyInt() and
     (JsPath \ "timeoutSeconds").formatMaybeEmptyInt() and
     (JsPath \ "periodSeconds").formatNullable[Int] and

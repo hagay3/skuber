@@ -39,13 +39,13 @@ import Pod._
       myPod mustEqual readPod
     }
     "this can be done for a Pod with a more complex spec" >> {
-      val readyProbe=Probe(action=HTTPGetAction(new URL("http://10.145.15.67:8100/ping")),
+      val readyProbe=Probe(action=Some(HTTPGetAction(new URL("http://10.145.15.67:8100/ping"))),
         timeoutSeconds = 10,
         initialDelaySeconds = 30,
         periodSeconds = Some(5),
         successThreshold = None,
         failureThreshold = Some(100))
-      val startupProbe=Probe(action=HTTPGetAction(new URL("http://10.145.15.67:8100/ping")),
+      val startupProbe=Probe(action=Some(HTTPGetAction(new URL("http://10.145.15.67:8100/ping"))),
         periodSeconds = Some(10),
         failureThreshold = Some(30))
       val cntrs=List(Container("myContainer", "myImage"),
@@ -343,7 +343,7 @@ import Pod._
 
       val probe = cntrs(2).livenessProbe.get
       probe.action match {
-        case ExecAction(command) => command.length mustEqual 3
+        case Some(ExecAction(command)) => command.length mustEqual 3
         case _ => failure("liveness probe action must be an ExecAction")
       }
       probe.initialDelaySeconds mustEqual 30
