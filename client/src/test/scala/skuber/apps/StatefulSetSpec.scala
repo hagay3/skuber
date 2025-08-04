@@ -69,7 +69,7 @@ class StatefulSetSpec extends Specification {
     val container=podSpec.containers(0)
     container.resources.get.requests.get("cpu").get mustEqual Resource.Quantity("500m")
     container.lifecycle.get.preStop.get mustEqual ExecAction(List("/bin/sh", "-c", "PID=$(pidof java) && kill $PID && while ps -p $PID > /dev/null; do sleep 1; done"))
-    container.readinessProbe.get.action mustEqual ExecAction(List("/bin/sh", "-c", "./ready.sh"))
+    container.readinessProbe.get.action.get mustEqual ExecAction(List("/bin/sh", "-c", "./ready.sh"))
     container.readinessProbe.get.initialDelaySeconds mustEqual 15
     container.readinessProbe.get.timeoutSeconds mustEqual 5
     stateSet.spec.get.selector.get.requirements.size mustEqual 4
