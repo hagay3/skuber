@@ -5,9 +5,6 @@ import play.api.libs.json._
 import skuber._
 import skuber.json.format._
 
-/**
-  * @author David O'Riordan
-  */
 class ProbeFormatSpec extends Specification {
   "This is a unit specification for the skuber Prob related json formatter.\n ".txt
 
