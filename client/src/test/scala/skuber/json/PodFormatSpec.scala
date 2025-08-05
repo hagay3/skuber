@@ -13,12 +13,12 @@ import skuber.json.format._
 import scala.io.Source
 
 /**
- * @author David O'Riordan
- */
+  * @author David O'Riordan
+  */
 class PodFormatSpec extends Specification {
   "This is a unit specification for the skuber Pod related json formatter.\n ".txt
 
-import Pod._
+  import Pod._
 
   // Pod reader and writer
   "A Pod can be symmetrically written to json and the same value read back in\n" >> {
@@ -34,59 +34,60 @@ import Pod._
     }
     "this can be done for a Pod with a simple, single container spec" >> {
       val myPod = Namespace("myNamespace").
-                    pod("myPod",Spec(Container("myContainer", "myImage")::Nil))
+        pod("myPod", Spec(Container("myContainer", "myImage") :: Nil))
       val readPod = Json.fromJson[Pod](Json.toJson(myPod)).get
       myPod mustEqual readPod
     }
     "this can be done for a Pod with a more complex spec" >> {
-      val readyProbe=Probe(action=Some(HTTPGetAction(new URL("http://10.145.15.67:8100/ping"))),
+      val readyProbe = Probe(action = HTTPGetAction(new URL("http://10.145.15.67:8100/ping")),
         timeoutSeconds = 10,
         initialDelaySeconds = 30,
         periodSeconds = Some(5),
         successThreshold = None,
         failureThreshold = Some(100))
-      val startupProbe=Probe(action=Some(HTTPGetAction(new URL("http://10.145.15.67:8100/ping"))),
+      val startupProbe = Probe(action = HTTPGetAction(new URL("http://10.145.15.67:8100/ping")),
         periodSeconds = Some(10),
         failureThreshold = Some(30))
-      val cntrs=List(Container("myContainer", "myImage"),
-                     Container(name="myContainer2",
-                               image = "myImage2",
-                               command=List("bash","ls"),
-                               workingDir=Some("/home/skuber"),
-                               ports=List(Container.Port(3234), Container.Port(3256,name="svc", hostIP="10.101.35.56")),
-                               env=List(EnvVar("HOME", "/home/skuber")),
-                               resources=Some(Resource.Requirements(limits=Map("cpu" -> "0.1"))),
-                               volumeMounts=List(Volume.Mount("mnt1","/mt1"),
-                                                 Volume.Mount("mnt2","/mt2", readOnly = true)),
-                               readinessProbe=Some(readyProbe),
-                               startupProbe=Some(startupProbe),
-                               lifecycle=Some(Lifecycle(preStop=Some(ExecAction(List("/bin/bash", "probe"))))),
-                               terminationMessagePath=Some("/var/log/termination-message"),
-                               terminationMessagePolicy=Some(Container.TerminationMessagePolicy.File),
-                               securityContext=Some(SecurityContext(capabilities=Some(Security.Capabilities(add=List("CAP_KILL"),drop=List("CAP_AUDIT_WRITE")))))))
+      val cntrs = List(Container("myContainer", "myImage"),
+        Container(name = "myContainer2",
+          image = "myImage2",
+          command = List("bash", "ls"),
+          workingDir = Some("/home/skuber"),
+          ports = List(Container.Port(3234), Container.Port(3256, name = "svc", hostIP = "10.101.35.56")),
+          env = List(EnvVar("HOME", "/home/skuber")),
+          resources = Some(Resource.Requirements(limits = Map("cpu" -> "0.1"))),
+          volumeMounts = List(Volume.Mount("mnt1", "/mt1"),
+            Volume.Mount("mnt2", "/mt2", readOnly = true)),
+          readinessProbe = Some(readyProbe),
+          startupProbe = Some(startupProbe),
+          lifecycle = Some(Lifecycle(preStop = Some(ExecAction(List("/bin/bash", "probe"))))),
+          terminationMessagePath = Some("/var/log/termination-message"),
+          terminationMessagePolicy = Some(Container.TerminationMessagePolicy.File),
+          securityContext = Some(SecurityContext(capabilities = Some(Security.Capabilities(add = List("CAP_KILL"), drop = List("CAP_AUDIT_WRITE")))))))
       val vols = List(Volume("myVol1", Volume.Glusterfs("myEndpointsName", "/usr/mypath")),
-                      Volume("myVol2", Volume.ISCSI("127.0.0.1:3260", "iqn.2014-12.world.server:www.server.world")))
-      val pdSpec=Spec(containers=cntrs,
-                      volumes=vols,
-                      dnsPolicy=DNSPolicy.ClusterFirst,
-                      nodeSelector=Map("diskType" -> "ssd", "machineSize" -> "large"),
-                      imagePullSecrets=List(LocalObjectReference("abc"),LocalObjectReference("def")),
-                      securityContext=Some(PodSecurityContext(supplementalGroups=List(1, 2, 3), seccompProfile = Some(Security.RuntimeDefaultProfile()))))
-      val myPod = Namespace("myNamespace").pod("myPod",pdSpec)
+        Volume("myVol2", Volume.ISCSI("127.0.0.1:3260", "iqn.2014-12.world.server:www.server.world")))
+      val pdSpec = Spec(containers = cntrs,
+        volumes = vols,
+        dnsPolicy = DNSPolicy.ClusterFirst,
+        nodeSelector = Map("diskType" -> "ssd", "machineSize" -> "large"),
+        imagePullSecrets = List(LocalObjectReference("abc"), LocalObjectReference("def")),
+        securityContext = Some(PodSecurityContext(supplementalGroups = List(1, 2, 3), seccompProfile = Some(Security.RuntimeDefaultProfile()))))
+      val myPod = Namespace("myNamespace").pod("myPod", pdSpec)
 
       val writtenPod = Json.toJson(myPod)
-      val strs=Json.stringify(writtenPod)
+      val strs = Json.stringify(writtenPod)
       val readPodJsResult = Json.fromJson[Pod](writtenPod)
 
       val ret: Result = readPodJsResult match {
         case JsError(e) => Failure(e.toString)
-        case JsSuccess(readPod,_) =>
+        case JsSuccess(readPod, _) =>
           readPod mustEqual myPod
       }
       ret
     }
     "a quite complex pod can be read from json" >> {
-      val podJsonStr="""
+      val podJsonStr =
+        """
         {
           "kind": "Pod",
           "apiVersion": "v1",
@@ -321,12 +322,12 @@ import Pod._
       myPod.spec.get.dnsPolicy mustEqual DNSPolicy.Default
       myPod.spec.get.restartPolicy mustEqual RestartPolicy.Always
       myPod.spec.get.tolerations mustEqual List(ExistsToleration(Some("localhost.domain/url")),
-        EqualToleration("key",Some("value"),Some(TolerationEffect.NoExecute)),
+        EqualToleration("key", Some("value"), Some(TolerationEffect.NoExecute)),
         ExistsToleration(None, Some(TolerationEffect.NoSchedule), None))
 
       val vols = myPod.spec.get.volumes
       vols.length mustEqual 2
-      vols(0) mustEqual Volume("dns-token",Volume.Secret("token-system-dns"))
+      vols(0) mustEqual Volume("dns-token", Volume.Secret("token-system-dns"))
 
       val cntrs = myPod.spec.get.containers
       cntrs.length mustEqual 3
@@ -335,15 +336,15 @@ import Pod._
       cntrs(0).terminationMessagePath mustEqual Some("/dev/termination-log")
       cntrs(0).terminationMessagePolicy mustEqual Some(Container.TerminationMessagePolicy.File)
       cntrs(0).resources.get.limits("cpu") mustEqual Resource.Quantity("100m")
-      cntrs(0).command.length  mustEqual 7
+      cntrs(0).command.length mustEqual 7
 
-      val etcdVolMounts=cntrs(0).volumeMounts
+      val etcdVolMounts = cntrs(0).volumeMounts
       etcdVolMounts.length mustEqual 1
       etcdVolMounts(0).name mustEqual "default-token-zmwgp"
 
       val probe = cntrs(2).livenessProbe.get
       probe.action match {
-        case Some(ExecAction(command)) => command.length mustEqual 3
+        case ExecAction(command) => command.length mustEqual 3
         case _ => failure("liveness probe action must be an ExecAction")
       }
       probe.initialDelaySeconds mustEqual 30
@@ -365,7 +366,7 @@ import Pod._
       cntrs(2).imagePullPolicy equals None
 
       val status = myPod.status.get
-      status.conditions(0) mustEqual Pod.Condition("Ready","False")
+      status.conditions(0) mustEqual Pod.Condition("Ready", "False")
       status.phase.get mustEqual Pod.Phase.Running
       val cntrStatuses = status.containerStatuses
       cntrStatuses.length mustEqual 3
@@ -394,7 +395,7 @@ import Pod._
 
       val myPod = Json.parse(podJsonSource).as[Pod]
       myPod.spec.get.affinity must beSome(Affinity(nodeAffinity = Some(NodeAffinity(requiredDuringSchedulingIgnoredDuringExecution = Some(RequiredDuringSchedulingIgnoredDuringExecution.requiredQuery("kubernetes.io/e2e-az-name", NodeSelectorOperator.In, List("e2e-az1", "e2e-az2"))),
-          preferredDuringSchedulingIgnoredDuringExecution = PreferredSchedulingTerms(PreferredSchedulingTerm.preferredQuery(1, "another-node-label-key", NodeSelectorOperator.In, List("another-node-label-value")))))))
+        preferredDuringSchedulingIgnoredDuringExecution = PreferredSchedulingTerms(PreferredSchedulingTerm.preferredQuery(1, "another-node-label-key", NodeSelectorOperator.In, List("another-node-label-value")))))))
       val readPod = Json.fromJson[Pod](Json.toJson(myPod)).get
       myPod mustEqual readPod
     }
@@ -464,7 +465,7 @@ import Pod._
 
       val myAffinity = Json.parse(affinityJsonSource).as[Affinity]
       myAffinity must_== Affinity(nodeAffinity = Some(NodeAffinity(requiredDuringSchedulingIgnoredDuringExecution = Some(RequiredDuringSchedulingIgnoredDuringExecution.requiredQuery("kubernetes.io/e2e-az-name", NodeSelectorOperator.In, List("e2e-az1", "e2e-az2"))),
-          preferredDuringSchedulingIgnoredDuringExecution = PreferredSchedulingTerms(PreferredSchedulingTerm.preferredQuery(1, "another-node-label-key", NodeSelectorOperator.In, List("another-node-label-value"))))))
+        preferredDuringSchedulingIgnoredDuringExecution = PreferredSchedulingTerms(PreferredSchedulingTerm.preferredQuery(1, "another-node-label-key", NodeSelectorOperator.In, List("another-node-label-value"))))))
       val readAffinity = Json.fromJson[Affinity](Json.toJson(myAffinity)).get
       myAffinity mustEqual readAffinity
     }
@@ -477,7 +478,7 @@ import Pod._
 
       val myAffinity = Json.parse(affinityJsonSource).as[Affinity]
       myAffinity must_== Affinity(nodeAffinity = Some(NodeAffinity(requiredDuringSchedulingIgnoredDuringExecution = Some(RequiredDuringSchedulingIgnoredDuringExecution.requiredQuery("kubernetes.io/e2e-az-name", NodeSelectorOperator.In, List("e2e-az1", "e2e-az2"))),
-          preferredDuringSchedulingIgnoredDuringExecution = PreferredSchedulingTerms())))
+        preferredDuringSchedulingIgnoredDuringExecution = PreferredSchedulingTerms())))
       val readAffinity = Json.fromJson[Affinity](Json.toJson(myAffinity)).get
       myAffinity mustEqual readAffinity
     }
@@ -492,7 +493,7 @@ import Pod._
 
       val myAffinity = Json.parse(affinityJsonStr).as[Affinity]
       myAffinity must_== Affinity(nodeAffinity = Some(NodeAffinity(requiredDuringSchedulingIgnoredDuringExecution = None,
-          preferredDuringSchedulingIgnoredDuringExecution = PreferredSchedulingTerms(PreferredSchedulingTerm.preferredQuery(1, "another-node-label-key", NodeSelectorOperator.In, List("another-node-label-value"))))))
+        preferredDuringSchedulingIgnoredDuringExecution = PreferredSchedulingTerms(PreferredSchedulingTerm.preferredQuery(1, "another-node-label-key", NodeSelectorOperator.In, List("another-node-label-value"))))))
       val readAffinity = Json.fromJson[Affinity](Json.toJson(myAffinity)).get
       myAffinity mustEqual readAffinity
     }
@@ -505,7 +506,7 @@ import Pod._
 
       val myAffinity = Json.parse(affinityJsonSource).as[Affinity]
       myAffinity must_== Affinity(nodeAffinity = Some(NodeAffinity(requiredDuringSchedulingIgnoredDuringExecution = None,
-          preferredDuringSchedulingIgnoredDuringExecution = NodeAffinity.PreferredSchedulingTerms(NodeAffinity.PreferredSchedulingTerm.preferredQuery(1, "another-node-label-key", NodeSelectorOperator.In, List("another-node-label-value"))))))
+        preferredDuringSchedulingIgnoredDuringExecution = NodeAffinity.PreferredSchedulingTerms(NodeAffinity.PreferredSchedulingTerm.preferredQuery(1, "another-node-label-key", NodeSelectorOperator.In, List("another-node-label-value"))))))
       val readAffinity = Json.fromJson[Affinity](Json.toJson(myAffinity)).get
       myAffinity mustEqual readAffinity
     }
@@ -518,9 +519,9 @@ import Pod._
       myPods.kind mustEqual "PodList"
       myPods.metadata.get.resourceVersion mustEqual "977"
       myPods.items.length mustEqual 22
-      myPods.items(21).status.get.containerStatuses.exists( cs => cs.name.equals("grafana")) mustEqual true
+      myPods.items(21).status.get.containerStatuses.exists(cs => cs.name.equals("grafana")) mustEqual true
 
-       // write and read back in again, compare
+      // write and read back in again, compare
       val readPods = Json.fromJson[PodList](Json.toJson(myPods)).get
       myPods mustEqual readPods
     }
@@ -559,17 +560,17 @@ import Pod._
     }
 
     "a statefulset with pod affinity/anti-affinity can be read and written as json successfully" >> {
-      val ssJsonSource=s"""{ "apiVersion": "apps/v1beta1", "kind": "StatefulSet", "metadata": { "name": "nginx-with-pod-affinity", "labels": { "app": "nginx", "security": "S1" } }, "spec": { "serviceName": "nginx", "replicas": 10, "selector": { "matchLabels": { "app": "nginx" } }, "template": { "metadata": { "labels": { "app": "nginx" } }, "spec": { "affinity": { "podAffinity": { "requiredDuringSchedulingIgnoredDuringExecution": [ { "labelSelector": { "matchExpressions": [{ "key": "security", "operator": "In", "values": [ "S1" ] }] }, "topologyKey": "failure-domain.beta.kubernetes.io/zone" } ] }, "podAntiAffinity": { "preferredDuringSchedulingIgnoredDuringExecution": [ { "weight": 100, "podAffinityTerm": { "labelSelector": { "matchExpressions": [{ "key": "security", "operator": "In", "values": [ "S2" ] }] }, "topologyKey": "kubernetes.io/hostname" } } ] } }, "containers": [ { "name": "nginx", "image": "nginx" } ] } } } }"""
+      val ssJsonSource = s"""{ "apiVersion": "apps/v1beta1", "kind": "StatefulSet", "metadata": { "name": "nginx-with-pod-affinity", "labels": { "app": "nginx", "security": "S1" } }, "spec": { "serviceName": "nginx", "replicas": 10, "selector": { "matchLabels": { "app": "nginx" } }, "template": { "metadata": { "labels": { "app": "nginx" } }, "spec": { "affinity": { "podAffinity": { "requiredDuringSchedulingIgnoredDuringExecution": [ { "labelSelector": { "matchExpressions": [{ "key": "security", "operator": "In", "values": [ "S1" ] }] }, "topologyKey": "failure-domain.beta.kubernetes.io/zone" } ] }, "podAntiAffinity": { "preferredDuringSchedulingIgnoredDuringExecution": [ { "weight": 100, "podAffinityTerm": { "labelSelector": { "matchExpressions": [{ "key": "security", "operator": "In", "values": [ "S2" ] }] }, "topologyKey": "kubernetes.io/hostname" } } ] } }, "containers": [ { "name": "nginx", "image": "nginx" } ] } } } }"""
 
       val ss = Json.parse(ssJsonSource).as[StatefulSet]
 
       val podAffinity = ss.spec.get.template.spec.get.affinity.get.podAffinity.get
       podAffinity.preferredDuringSchedulingIgnoredDuringExecution.size mustEqual (0)
       podAffinity.requiredDuringSchedulingIgnoredDuringExecution.size mustEqual (1)
-      val affinityTerm=podAffinity.requiredDuringSchedulingIgnoredDuringExecution(0)
-      val affinityTermRequirement=affinityTerm.labelSelector.get.requirements.head
+      val affinityTerm = podAffinity.requiredDuringSchedulingIgnoredDuringExecution(0)
+      val affinityTermRequirement = affinityTerm.labelSelector.get.requirements.head
       affinityTermRequirement match {
-        case LabelSelector.InRequirement(_, values) => values mustEqual(List("S1"))
+        case LabelSelector.InRequirement(_, values) => values mustEqual (List("S1"))
         case _ => failure("Parsed pod affinity term selector requirement should be of 'In' type")
       }
       affinityTermRequirement.key mustEqual "security"
@@ -577,10 +578,10 @@ import Pod._
       val podAntiAffinity = ss.spec.get.template.spec.get.affinity.get.podAntiAffinity.get
       podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution.size mustEqual (1)
       podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.size mustEqual (0)
-      val antiAffinityTerm=podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution(0).podAffinityTerm
-      val antiAffinityTermRequirement=antiAffinityTerm.labelSelector.get.requirements.head
+      val antiAffinityTerm = podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution(0).podAffinityTerm
+      val antiAffinityTermRequirement = antiAffinityTerm.labelSelector.get.requirements.head
       antiAffinityTermRequirement match {
-        case LabelSelector.InRequirement(_, values) => values mustEqual(List("S2"))
+        case LabelSelector.InRequirement(_, values) => values mustEqual (List("S2"))
         case _ => failure("Parsed pod affinity term selector requirement should be of 'In' type")
       }
       antiAffinityTermRequirement.key mustEqual "security"
@@ -593,15 +594,15 @@ import Pod._
   }
 
   "a pod with a spec that sets many optional fields can be read and written as json successfully" >> {
-    val podJsonSource=Source.fromURL(getClass.getResource("/examplePodExtendedSpec.json"))
+    val podJsonSource = Source.fromURL(getClass.getResource("/examplePodExtendedSpec.json"))
     val podJsonStr = podJsonSource.mkString
     val pod = Json.parse(podJsonStr).as[Pod]
 
-    val container=pod.spec.get.containers(0)
+    val container = pod.spec.get.containers(0)
     container.securityContext.get.runAsUser mustEqual Some(1000)
     container.terminationMessagePolicy mustEqual Some(Container.TerminationMessagePolicy.FallbackToLogsOnError)
     container.terminationMessagePath mustEqual Some("/tmp/my-log")
-    val mount=container.volumeMounts(0)
+    val mount = container.volumeMounts(0)
     mount.mountPropagation mustEqual Some(Volume.MountPropagationMode.HostToContainer)
     mount.readOnly mustEqual true
     mount.subPath mustEqual "subpath"
@@ -623,11 +624,124 @@ import Pod._
     configVolume.source must beAnInstanceOf[Volume.ProjectedVolumeSource]
     configVolume.source.asInstanceOf[Volume.ProjectedVolumeSource].defaultMode mustEqual Some(128)
     configVolume.source.asInstanceOf[Volume.ProjectedVolumeSource].sources mustEqual
-      List(SecretProjection("verysecret",Some(List(KeyToPath("host-key-pub", "host_key.pub"), KeyToPath("other-key","worker_key"))),Some(false)),
-      ConfigMapProjection("justConfig",Some(List(KeyToPath("host-key-pub", "host_key.pub"), KeyToPath("other-key", "worker_key"))),Some(false)),
-      ServiceAccountTokenProjection(Some("vault"),Some(7200),"vault-token"))
+      List(SecretProjection("verysecret", Some(List(KeyToPath("host-key-pub", "host_key.pub"), KeyToPath("other-key", "worker_key"))), Some(false)),
+        ConfigMapProjection("justConfig", Some(List(KeyToPath("host-key-pub", "host_key.pub"), KeyToPath("other-key", "worker_key"))), Some(false)),
+        ServiceAccountTokenProjection(Some("vault"), Some(7200), "vault-token"))
 
 
+  }
+
+  "read probe json - GRPC" >> {
+    val podJsonStr =
+      """
+      {
+        "kind": "Pod",
+        "apiVersion": "v1",
+        "metadata": {
+          "name": "kube-dns-v3-i5fzg",
+          "generateName": "kube-dns-v3-",
+          "namespace": "default",
+          "selfLink": "/api/v1/namespaces/default/pods/kube-dns-v3-i5fzg",
+          "uid": "66a5d354-42a0-11e5-9586-0800279dd272",
+          "resourceVersion": "31066",
+          "creationTimestamp": "2015-08-14T16:20:38Z",
+          "labels": {
+            "k8s-app": "kube-dns",
+            "kubernetes.io/cluster-service": "true",
+            "version": "v3"
+          },
+          "annotations": {
+            "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicationController\",\"namespace\":\"default\",\"name\":\"kube-dns-v3\",\"uid\":\"8267387c-4239-11e5-9586-0800279dd272\",\"apiVersion\":\"v1\",\"resourceVersion\":\"27\"}}"
+          }
+        },
+        "spec": {
+          "securityContext": {
+            "seccompProfile": {
+              "type": "RuntimeDefault"
+            }
+          },
+          "containers": [
+            {
+              "name": "skydns",
+              "image": "gcr.io/google_containers/skydns:2015-03-11-001",
+              "args": [
+                "-machines=http://localhost:4001",
+                "-addr=0.0.0.0:53",
+                "-domain=cluster.local."
+              ],
+              "ports": [
+                {
+                  "name": "dns",
+                  "containerPort": 53,
+                  "protocol": "UDP"
+                },
+                {
+                  "name": "dns-tcp",
+                  "containerPort": 53,
+                  "protocol": "TCP"
+                }
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "100m"
+                }
+              },
+              "volumeMounts": [
+                {
+                  "name": "default-token-zmwgp",
+                  "readOnly": true,
+                  "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                }
+              ],
+              "livenessProbe": {
+                "grpc": {
+                  "port": 8090
+                },
+                "initialDelaySeconds": 30,
+                "timeoutSeconds": 5
+              },
+              "terminationMessagePath": "/dev/termination-log"
+            }
+          ],
+          "restartPolicy": "Always",
+          "dnsPolicy": "Default",
+          "tolerations": [
+            {
+              "key": "localhost.domain/url",
+              "operator": "Exists"
+            },
+            {
+              "key": "key",
+              "operator": "Equal",
+              "value": "value",
+              "effect": "NoExecute"
+            },
+            {
+              "effect": "NoSchedule",
+              "operator": "Exists"
+            }
+          ],
+          "serviceAccount": "default",
+          "nodeName": "10.245.1.5"
+        },
+        "status": {
+          "phase": "Running",
+          "conditions": [
+            {
+              "type": "Ready",
+              "status": "False"
+            }
+          ],
+          "hostIP": "10.245.1.5",
+          "podIP": "10.246.3.2",
+          "startTime": "2015-08-14T16:22:09Z",
+          "containerStatuses": []
+        }
+      }
+      """
+    val myPod = Json.parse(podJsonStr).as[Pod]
+    print(myPod.spec.get.containers(0).readinessProbe)
+    myPod.spec.get.containers(0).livenessProbe.get.action mustEqual GRPCAction(8090)
   }
 
 }

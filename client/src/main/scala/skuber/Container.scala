@@ -88,7 +88,7 @@ case class Container(name: String,
                             timeoutSeconds: Int = 0,
                             schema: String = "HTTP") = {
     val handler = HTTPGetAction(port = port, path = path, schema = schema)
-    val probe = Probe(Some(handler), initialDelaySeconds, timeoutSeconds)
+    val probe = Probe(handler, initialDelaySeconds, timeoutSeconds)
     withLivenessProbe(probe)
   }
 
@@ -101,7 +101,7 @@ case class Container(name: String,
                              timeoutSeconds: Int = 0,
                              schema: String = "HTTP") = {
     val handler = HTTPGetAction(port = port, path = path, schema = schema)
-    val probe = Probe(Some(handler), initialDelaySeconds, timeoutSeconds)
+    val probe = Probe(handler, initialDelaySeconds, timeoutSeconds)
     withReadinessProbe(probe)
   }
 

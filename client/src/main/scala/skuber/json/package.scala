@@ -453,14 +453,19 @@ package object format {
   implicit val httpGetActionFormat: Format[HTTPGetAction] = ((JsPath \ "port").format[NameablePort] and
     (JsPath \ "host").formatMaybeEmptyString() and
     (JsPath \ "path").formatMaybeEmptyString() and
-    (JsPath \ "scheme").formatMaybeEmptyString()) (HTTPGetAction.apply, h => (h.port, h.host, h.path, h.schema))
+    (JsPath \ "schema").formatMaybeEmptyString()) (HTTPGetAction.apply, h => (h.port, h.host, h.path, h.schema))
 
 
   implicit val tcpSocketActionFormat: Format[TCPSocketAction] = ((JsPath \ "port").format[NameablePort].inmap(port => TCPSocketAction(port), (tsa: TCPSocketAction) => tsa.port))
+  implicit val grpcActionFormat: Format[GRPCAction] =
+    ((JsPath \ "port").format[NameablePort] and
+      (JsPath \ "service").formatNullable[String]) (GRPCAction.apply, g => (g.port, g.service))
 
   implicit val handlerReads: Reads[Handler] = ((JsPath \ "exec").read[ExecAction].map(x => x: Handler) |
     (JsPath \ "httpGet").read[HTTPGetAction].map(x => x: Handler) |
-    (JsPath \ "tcpSocket").read[TCPSocketAction].map(x => x: Handler))
+    (JsPath \ "tcpSocket").read[TCPSocketAction].map(x => x: Handler) |
+    (JsPath \ "grpc").read[GRPCAction].map(x => x: Handler)) | Reads.pure(UnknownHandler)
+
 
   implicit val handlerWrites: Writes[Handler] = Writes[Handler] {
     handler =>
@@ -472,7 +477,7 @@ package object format {
   }
   implicit val handlerFormat: Format[Handler] = Format(handlerReads, handlerWrites)
 
-  implicit val probeFormat: Format[Probe] = (JsPath.formatNullable[Handler] and
+  implicit val probeFormat: Format[Probe] = (JsPath.format[Handler] and
     (JsPath \ "initialDelaySeconds").formatMaybeEmptyInt() and
     (JsPath \ "timeoutSeconds").formatMaybeEmptyInt() and
     (JsPath \ "periodSeconds").formatNullable[Int] and
