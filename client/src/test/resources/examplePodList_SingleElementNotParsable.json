@@ -1,0 +1,233 @@
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": {
+    "selfLink": "/api/v1/pods",
+    "resourceVersion": "977"
+  },
+  "items": [
+    {
+      "metadata_not_parsable_error_for_tests": {
+        "name": "etcd-server-kubernetes-master",
+        "namespace": "kube-system",
+        "selfLink": "/api/v1/namespaces/kube-system/pods/etcd-server-kubernetes-master",
+        "uid": "5cc1fb77-48be-11e5-8b41-42010af0eb07",
+        "resourceVersion": "361",
+        "creationTimestamp": "2015-08-22T11:10:14Z",
+        "annotations": {
+          "kubernetes.io/config.mirror": "mirror",
+          "kubernetes.io/config.seen": "2015-08-22T11:10:03.099745385Z",
+          "kubernetes.io/config.source": "file"
+        }
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "varetcd",
+            "hostPath": {
+              "path": "/mnt/master-pd/var/etcd"
+            }
+          },
+          {
+            "name": "varlogetcd",
+            "hostPath": {
+              "path": "/var/log/etcd.log"
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "etcd-container",
+            "image": "gcr.io/google_containers/etcd:2.0.12",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "/usr/local/bin/etcd --addr 127.0.0.1:4001 --bind-addr 127.0.0.1:4001 --data-dir /var/etcd/data 1\u003e\u003e/var/log/etcd.log 2\u003e\u00261"
+            ],
+            "ports": [
+              {
+                "name": "serverport",
+                "hostPort": 2380,
+                "containerPort": 2380,
+                "protocol": "TCP"
+              },
+              {
+                "name": "clientport",
+                "hostPort": 4001,
+                "containerPort": 4001,
+                "protocol": "TCP"
+              }
+            ],
+            "resources": {
+              "limits": {
+                "cpu": "200m"
+              }
+            },
+            "volumeMounts": [
+              {
+                "name": "varetcd",
+                "mountPath": "/var/etcd"
+              },
+              {
+                "name": "varlogetcd",
+                "mountPath": "/var/log/etcd.log"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "dnsPolicy": "ClusterFirst",
+        "nodeName": "kubernetes-master",
+        "hostNetwork": true
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Ready",
+            "status": "True"
+          }
+        ],
+        "hostIP": "10.240.235.7",
+        "podIP": "10.240.235.7",
+        "startTime": "2015-08-22T11:10:47Z",
+        "containerStatuses": [
+          {
+            "name": "etcd-container",
+            "state": {
+              "running": {
+                "startedAt": "2015-08-22T11:10:37Z"
+              }
+            },
+            "lastState": {
+              "terminated": {
+                "exitCode": 0,
+                "startedAt": "2015-08-22T11:10:04Z",
+                "finishedAt": "2015-08-22T11:10:33Z",
+                "containerID": "docker://b74a594e7dc54499a7173f2ec5e5c0f73b8b9977f78aa2b0e78ade3a8f3dd78a"
+              }
+            },
+            "ready": true,
+            "restartCount": 1,
+            "image": "gcr.io/google_containers/etcd:2.0.12",
+            "imageID": "docker://fafe4735269937ef7ba1fa0badb66d7fd70736619862e3982144c59289fddb11",
+            "containerID": "docker://f76ec79bf5221ccc99be3dff6bf7cf8c75fedca5e18210c6150fff95d518620d"
+          }
+        ]
+      }
+    },
+    {
+      "metadata": {
+        "name": "fluentd-cloud-logging-kubernetes-master",
+        "namespace": "kube-system",
+        "selfLink": "/api/v1/namespaces/kube-system/pods/fluentd-cloud-logging-kubernetes-master",
+        "uid": "645ed913-48be-11e5-8b41-42010af0eb07",
+        "resourceVersion": "350",
+        "creationTimestamp": "2015-08-22T11:10:26Z",
+        "annotations": {
+          "kubernetes.io/config.mirror": "mirror",
+          "kubernetes.io/config.seen": "2015-08-22T11:10:03.099754471Z",
+          "kubernetes.io/config.source": "file"
+        }
+      },
+      "spec": {
+        "volumes": [
+          {
+            "name": "varlog",
+            "hostPath": {
+              "path": "/var/log"
+            }
+          },
+          {
+            "name": "containers",
+            "hostPath": {
+              "path": "/var/lib/docker/containers"
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "fluentd-cloud-logging",
+            "image": "gcr.io/google_containers/fluentd-gcp:1.11",
+            "env": [
+              {
+                "name": "FLUENTD_ARGS",
+                "value": "-qq"
+              },
+              {
+                "name": "PASSWORD",
+                "valueFrom": {
+                  "secretKeyRef": {
+                    "key": "PASSWORD",
+                    "name": "api-secrets"
+                  }
+                }
+              },
+              {
+                "name": "ARGS"
+              }
+            ],
+            "resources": {
+              "limits": {
+                "cpu": "100m",
+                "memory": "200Mi"
+              }
+            },
+            "volumeMounts": [
+              {
+                "name": "varlog",
+                "mountPath": "/varlog"
+              },
+              {
+                "name": "containers",
+                "mountPath": "/var/lib/docker/containers"
+              }
+            ],
+            "terminationMessagePath": "/dev/termination-log",
+            "imagePullPolicy": "IfNotPresent"
+          }
+        ],
+        "restartPolicy": "Always",
+        "dnsPolicy": "ClusterFirst",
+        "nodeName": "kubernetes-master"
+      },
+      "status": {
+        "phase": "Running",
+        "conditions": [
+          {
+            "type": "Ready",
+            "status": "True"
+          }
+        ],
+        "hostIP": "10.240.235.7",
+        "podIP": "10.244.1.2",
+        "startTime": "2015-08-22T11:10:47Z",
+        "containerStatuses": [
+          {
+            "name": "fluentd-cloud-logging",
+            "state": {
+              "running": {
+                "startedAt": "2015-08-22T11:10:37Z"
+              }
+            },
+            "lastState": {
+              "terminated": {
+                "exitCode": 0,
+                "startedAt": "2015-08-22T11:10:26Z",
+                "finishedAt": "2015-08-22T11:10:33Z",
+                "containerID": "docker://5b423a071d080bd62c5f69c360646b3e1728990c548e14dc68c88164cf629cc1"
+              }
+            },
+            "ready": true,
+            "restartCount": 1,
+            "image": "gcr.io/google_containers/fluentd-gcp:1.11",
+            "imageID": "docker://b6e57ec0903bf894c2703e1ea70434b86f2503258b60ed4ad0dbf52388afdef1",
+            "containerID": "docker://1f37cd0be800ca24ddf58011cdabada51ba89da491f05a627cdb4e3fc7670afc"
+          }
+        ]
+      }
+    }
+  ]
+}
