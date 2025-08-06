@@ -35,6 +35,7 @@
   * [Data Model Overview](#data-model-overview)
   * [Fluent API](#fluent-api)
   * [JSON Mapping](#json-mapping)
+  * [Tolerant List JSON Formatters](#tolerant-list-json-formatters)
 
 ## Quick Start
 
@@ -122,7 +123,7 @@ object InClusterConfigurationExample extends App {
       getApiVersions(5)
       getApiVersions(11)
 
-      k8s.close
+      k8s.close()
       Await.result(as.terminate(), 10.seconds)
       System.exit(0)
 
@@ -699,7 +700,7 @@ object EventBusExample extends App {
   }
   Await.result(ls, 30.seconds)
 
-  k8s.close
+  k8s.close()
 
   Await.result(system.terminate(), 10.seconds)
 
@@ -953,7 +954,7 @@ listPods(namespace, 0)
 listPods(namespace, 5)
 listPods(namespace, 11)
 
-k8s.close
+k8s.close()
 Await.result(as.terminate(), 10.seconds)
 System.exit(0)
 
@@ -991,7 +992,7 @@ val depl = Deployment("exampleDeployment").withSelector(sel)
 ```scala
 // Close client.
 // This prevents any more requests being sent by the client.
-k8s.close
+k8s.close()
 
 // this closes the connection resources etc.
 system.terminate
