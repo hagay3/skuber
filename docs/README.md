@@ -35,6 +35,7 @@
   * [Data Model Overview](#data-model-overview)
   * [Fluent API](#fluent-api)
   * [JSON Mapping](#json-mapping)
+  * [Tolerant List JSON Formatters](#tolerant-list-json-formatters)
 
 ## Quick Start
 
@@ -122,7 +123,7 @@ object InClusterConfigurationExample extends App {
       getApiVersions(5)
       getApiVersions(11)
 
-      k8s.close
+      k8s.close()
       Await.result(as.terminate(), 10.seconds)
       System.exit(0)
 
@@ -699,7 +700,7 @@ object EventBusExample extends App {
   }
   Await.result(ls, 30.seconds)
 
-  k8s.close
+  k8s.close()
 
   Await.result(system.terminate(), 10.seconds)
 
@@ -953,7 +954,7 @@ listPods(namespace, 0)
 listPods(namespace, 5)
 listPods(namespace, 11)
 
-k8s.close
+k8s.close()
 Await.result(as.terminate(), 10.seconds)
 System.exit(0)
 
@@ -991,7 +992,7 @@ val depl = Deployment("exampleDeployment").withSelector(sel)
 ```scala
 // Close client.
 // This prevents any more requests being sent by the client.
-k8s.close
+k8s.close()
 
 // this closes the connection resources etc.
 system.terminate
@@ -1113,3 +1114,90 @@ Equally it is straightforward to do the reverse and generate a Play Json value f
 ```scala
 val json = Json.toJson(deployment)
 ```
+
+
+## Tolerant List JSON Formatters
+
+Some Kubernetes list responses may contain items that Skuber can’t parse — for example, when the cluster has a resource version newer than the client library.  
+With **tolerant list formatters**, those problematic items are simply ignored, and the rest of the list is still returned.
+
+---
+
+### When to Use
+Use tolerant list formatters when you prefer **best-effort parsing** over failing the entire request.  
+They’re especially helpful for:
+- Handling unknown or future resource fields
+- Working with mixed-version clusters
+- Avoiding runtime errors when only a few items are invalid
+
+---
+
+### How to Use
+Import the tolerant list formatter package and use the provided implicits instead of the strict ones:
+
+```scala
+import skuber._
+import skuber.json.TolerantListJsonFormatters._
+
+// Example: reading a PodList that contains one unparseable pod
+val podList = k8s.list[PodList]()
+podList.foreach { list =>
+  println(s"Read ${list.items.size} pods (invalid items were dropped).")
+}
+```
+
+---
+
+### Example — Strict vs. Tolerant Parsing
+
+#### Input JSON
+Example: `PodList` with one **malformed** item (invalid `metadata`):
+
+```json
+{
+  "kind": "PodList",
+  "apiVersion": "v1",
+  "metadata": { "resourceVersion": "977" },
+  "items": [
+    { "metadata_not_parsable_error_for_tests": { "name": "bad-pod" } },
+    { "metadata": { "name": "good-pod" }, "spec": { }, "status": { } }
+  ]
+}
+```
+
+---
+
+#### Using **Strict** List Formatter
+```scala
+import skuber.json.format._ // strict formatters
+
+val pods = Json.parse(json).as[PodList] // throws JsResultException
+```
+
+Output:
+```
+JsResultException: error.expected.jsobject
+```
+The whole parse fails because one element is invalid.
+
+---
+
+#### Using **Tolerant** List Formatter
+```scala
+import skuber.json.TolerantListJsonFormatters._
+
+val pods = Json.parse(json).as[PodList](podListFmtTolerant)
+println(pods.items.length) // 1
+println(pods.items.head.metadata.name) // "good-pod"
+```
+
+Output:
+```
+1
+good-pod
+```
+The malformed pod is silently dropped; valid pods remain.
+
+---
+
+> **Tip:** Tolerant formatters are available for common resources like `PodList`, `NodeList`, `ServiceList`, and more.

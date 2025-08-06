@@ -744,4 +744,22 @@ class PodFormatSpec extends Specification {
     myPod.spec.get.containers(0).livenessProbe.get.action mustEqual GRPCAction(8090)
   }
 
+
+  /**
+    * Tolerant list json format test
+    */
+  "a complex podlist can be read in case single element in the pod list is failed to parse" >> {
+    val podListJsonSource = Source.fromURL(getClass.getResource("/examplePodList_SingleElementNotParsable.json"))
+    val podListJsonStr = podListJsonSource.mkString
+
+    val myPods = Json.parse(podListJsonStr).as[PodList](TolerantListJsonFormatters.podListFmtTolerant)
+    myPods.kind mustEqual "PodList"
+    myPods.metadata.get.resourceVersion mustEqual "977"
+    myPods.items.length mustEqual 1
+
+    // write and read back in again, compare
+    val readPods = Json.fromJson[PodList](Json.toJson(myPods)(TolerantListJsonFormatters.podListFmtTolerant))(TolerantListJsonFormatters.podListFmtTolerant).get
+    myPods mustEqual readPods
+  }
+
 }
