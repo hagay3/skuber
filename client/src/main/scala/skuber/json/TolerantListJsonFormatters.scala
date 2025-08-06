@@ -1,5 +1,7 @@
 package skuber.json
 
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.event.Logging
 import play.api.libs.functional.FunctionalBuilder
 import play.api.libs.functional.syntax._
 import play.api.libs.json._
@@ -11,11 +13,30 @@ import skuber.{ConfigMap, ConfigMapList, Endpoints, EndpointsList, Event, EventL
 
 package object TolerantListJsonFormatters {
 
+  private val actorSystem = ActorSystem("skuber-tolerant-list-json-formatters")
+  private val log = Logging.getLogger(actorSystem, "skuber.api")
+
   implicit def tolerantListFormat[T](implicit r: Reads[T], w: Writes[T]): Format[List[T]] = {
-    val tolerantReads: Reads[List[T]] =
-      Reads.list[JsValue].map(_.flatMap(_.validate[T].asOpt)) // drop bad items
+    val tolerantReads: Reads[List[T]] = Reads.list[JsValue].map { values =>
+      values.flatMap { jsValue =>
+        jsValue.validate[T] match {
+          case JsSuccess(parsed, _) =>
+            Some(parsed)
+
+          case JsError(errors) =>
+            log.error(s"[JSON Parse Error] Failed to parse element: $jsValue")
+            log.error(s"  Details: ${errors.map { case (path, errs) =>
+              s"$path: ${errs.map(_.message).mkString(", ")}"
+            }.mkString("; ")}")
+
+            None
+        }
+      }
+    }
+
     Format(tolerantReads, Writes.list[T](w))
   }
+
 
   private def formatMaybeEmptyTolerantList[T](path: JsPath)
                                              (implicit tReads: Reads[T], tWrites: Writes[T], omitEmpty: Boolean = true
