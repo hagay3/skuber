@@ -115,7 +115,7 @@ object PodExecImpl {
         val detailsF = Unmarshal(upgrade.response.entity).to[String]
         detailsF.map { details =>
           throw new K8SException(Status(message =
-            Some(s"Connection failed with status ${upgrade.response.status}"), code = Some(upgrade.response.status.intValue()), details = Some(JsString(details))))
+            Some(s"Connection failed with status ${upgrade.response.status}"), code = Some(upgrade.response.status.intValue()), details = Some(JsString(details)), namespace = Some(namespaceName)))
             Done
         }
       }
