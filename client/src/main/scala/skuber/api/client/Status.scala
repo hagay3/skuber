@@ -14,7 +14,9 @@ case class Status(apiVersion: String = "v1",
   message: Option[String]= None,
   reason: Option[String] = None,
   details: Option[JsValue] = None,
-  code: Option[Int] = None  // HTTP status code
+  code: Option[Int] = None,  // HTTP status code
+  resourcePath: Option[String] = None,
+  namespace: Option[String] = None,
 ) {
   override def toString: String = Json.prettyPrint(Json.toJson(this))
 

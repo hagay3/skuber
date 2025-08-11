@@ -133,7 +133,7 @@ class DynamicKubernetesClientImpl(context: Context = Context(),
       query = queryOpt,
       nameComponent = None,
       namespace = namespace)
-    makeRequestReturningObjectResource[DynamicKubernetesObjectList](req)
+    makeRequestReturningObjectResource[DynamicKubernetesObjectList](req, namespace)
   }
 
   /**
@@ -177,7 +177,7 @@ class DynamicKubernetesClientImpl(context: Context = Context(),
     val request = HTTPRequestAuth.addAuth(noAuthReq, requestAuth)
     for {
       response <- invoke(request)
-      apiVersionResource <- toKubernetesResponse[DynamicKubernetesObject](response)
+      apiVersionResource <- toKubernetesResponse[DynamicKubernetesObject](response, url, None)
     } yield apiVersionResource.jsonRaw.jsValue.as[List[String]]
   }
 
@@ -198,7 +198,7 @@ class DynamicKubernetesClientImpl(context: Context = Context(),
       requestEntity <- marshal.to[RequestEntity]
       httpRequest = buildRequest(method, apiVersion, resourcePlural, nameComponent, namespace = namespace)
         .withEntity(requestEntity.withContentType(MediaTypes.`application/json`))
-      newOrUpdatedResource <- makeRequestReturningObjectResource[DynamicKubernetesObject](httpRequest)
+      newOrUpdatedResource <- makeRequestReturningObjectResource[DynamicKubernetesObject](httpRequest, namespace)
     } yield newOrUpdatedResource
   }
 
@@ -259,19 +259,19 @@ class DynamicKubernetesClientImpl(context: Context = Context(),
     log.error(ex, s"[ ${lc.output} - $msg ]")
   }
 
-  private[skuber] def makeRequestReturningObjectResource[T](httpRequest: HttpRequest)(implicit lc: LoggingContext, um: Unmarshaller[HttpResponse, T]): Future[T] = {
+  private[skuber] def makeRequestReturningObjectResource[T](httpRequest: HttpRequest, namespace: Option[String])(implicit lc: LoggingContext, um: Unmarshaller[HttpResponse, T]): Future[T] = {
     for {
       httpResponse <- invoke(httpRequest)
-      result <- toKubernetesResponse[T](httpResponse)
+      result <- toKubernetesResponse[T](httpResponse, httpRequest.uri.toString(), namespace)
     } yield result
   }
 
 
-  private[skuber] def toKubernetesResponse[T](response: HttpResponse)(implicit lc: LoggingContext, um: Unmarshaller[HttpResponse, T]): Future[T] = {
+  private[skuber] def toKubernetesResponse[T](response: HttpResponse, resourcePath: String, namespace: Option[String])(implicit lc: LoggingContext, um: Unmarshaller[HttpResponse, T]): Future[T] = {
     val statusOptFut = checkResponseStatus(response)
     statusOptFut flatMap {
       case Some(status) =>
-        throw new K8SException(status)
+        throw new K8SException(status.copy(resourcePath = Some(resourcePath), namespace = namespace))
       case None =>
         try {
           Unmarshal(response).to[T]
@@ -279,7 +279,7 @@ class DynamicKubernetesClientImpl(context: Context = Context(),
         catch {
           case ex: Exception =>
             logError("Unable to unmarshal resource from response", ex)
-            throw new K8SException(Status(message = Some("Error unmarshalling resource from response"), details = Some(JsString(ex.getMessage))))
+            throw new K8SException(Status(message = Some("Error unmarshalling resource from response"), details = Some(JsString(ex.getMessage)), resourcePath = Some(resourcePath), namespace = namespace))
         }
     }
   }
@@ -289,7 +289,7 @@ class DynamicKubernetesClientImpl(context: Context = Context(),
                         apiVersion: String,
                         resourcePlural: String)(implicit lc: LoggingContext): Future[DynamicKubernetesObject] = {
     val req = buildRequest(HttpMethods.GET, apiVersion, resourcePlural, Some(name), namespace = namespace)
-    makeRequestReturningObjectResource[DynamicKubernetesObject](req)
+    makeRequestReturningObjectResource[DynamicKubernetesObject](req, namespace)
   }
 
 

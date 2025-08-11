@@ -185,20 +185,20 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
     logInfo(logConfig.logResponseFullListResource, s" Unmarshalled list resource: ${result.toString}")
   }
 
-  private[skuber] def makeRequestReturningObjectResource[O <: ObjectResource](httpRequest: HttpRequest)(implicit fmt: Format[O], lc: LoggingContext): Future[O] =
+  private[skuber] def makeRequestReturningObjectResource[O <: ObjectResource](httpRequest: HttpRequest, namespace: Option[String])(implicit fmt: Format[O], lc: LoggingContext): Future[O] =
   {
     for {
       httpResponse <- invoke(httpRequest)
-      result <- toKubernetesResponse[O](httpResponse)
+      result <- toKubernetesResponse[O](httpResponse, httpRequest.uri.toString(), namespace)
       _ = logReceivedObjectDetails(result)
     } yield result
   }
 
-  private[skuber] def makeRequestReturningListResource[L <: ListResource[_]](httpRequest: HttpRequest)(implicit fmt: Format[L], lc: LoggingContext): Future[L] =
+  private[skuber] def makeRequestReturningListResource[L <: ListResource[_]](httpRequest: HttpRequest, namespace: Option[String])(implicit fmt: Format[L], lc: LoggingContext): Future[L] =
   {
     for {
       httpResponse <- invoke(httpRequest)
-      result <- toKubernetesResponse[L](httpResponse)
+      result <- toKubernetesResponse[L](httpResponse, httpRequest.uri.toString(), namespace)
       _ = logReceivedListDetails(result)
     } yield result
   }
@@ -230,7 +230,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
       requestEntity        <- marshal.to[RequestEntity]
       httpRequest          = buildRequest(method, rd, nameComponent, namespace = Some(targetNamespace))
           .withEntity(requestEntity.withContentType(MediaTypes.`application/json`))
-      newOrUpdatedResource <- makeRequestReturningObjectResource[O](httpRequest)
+      newOrUpdatedResource <- makeRequestReturningObjectResource[O](httpRequest, Some(targetNamespace))
     } yield newOrUpdatedResource
   }
 
@@ -309,7 +309,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
   private def listInNamespace[L <: ListResource[_]](theNamespace: String, rd: ResourceDefinition[_])(implicit fmt: Format[L], lc: LoggingContext): Future[L] =
   {
     val req = buildRequest(HttpMethods.GET, rd, None, namespace = Some(theNamespace))
-    makeRequestReturningListResource[L](req)
+    makeRequestReturningListResource[L](req, Some(theNamespace))
   }
 
   /*
@@ -351,7 +351,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
       logDebug(s"[List request: resources of kind '${rd.spec.names.kind}'${optsInfo}")
     }
     val req = buildRequest(HttpMethods.GET, rd, None, query = queryOpt, namespace)
-    makeRequestReturningListResource[L](req)
+    makeRequestReturningListResource[L](req, namespace)
   }
 
   override def getOption[O <: ObjectResource](name: String, namespace: Option[String] = None)(implicit fmt: Format[O], rd: ResourceDefinition[O], lc: LoggingContext): Future[Option[O]] =
@@ -377,7 +377,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
   private[api] def _get[O <: ObjectResource](name: String, namespace: Option[String] = Some(namespaceName))(implicit fmt: Format[O], rd: ResourceDefinition[O], lc: LoggingContext): Future[O] =
   {
     val req = buildRequest(HttpMethods.GET, rd, Some(name), namespace = namespace)
-    makeRequestReturningObjectResource[O](req)
+    makeRequestReturningObjectResource[O](req, namespace)
   }
 
   override def delete[O <: ObjectResource](name: String, gracePeriodSeconds: Int = -1, namespace: Option[String] = None)(implicit rd: ResourceDefinition[O], lc: LoggingContext): Future[Unit] =
@@ -425,7 +425,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
       logDebug(s"[Delete request: resources of kind '${rd.spec.names.kind}'${lsInfo}")
     }
     val req = buildRequest(HttpMethods.DELETE, rd, None, query = queryOpt, namespace)
-    makeRequestReturningListResource[L](req)
+    makeRequestReturningListResource[L](req, namespace)
   }
 
   override def getPodLogSource(name: String, queryParams: Pod.LogQueryParams, namespace: Option[String] = None)(implicit lc: LoggingContext): Future[Source[ByteString, _]] =
@@ -522,7 +522,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
   override def getScale[O <: ObjectResource](objName: String, namespace: Option[String] = None)(implicit rd: ResourceDefinition[O], sc: Scale.SubresourceSpec[O], lc: LoggingContext) : Future[Scale] =
   {
     val req = buildRequest(HttpMethods.GET, rd, Some(objName+ "/scale"), namespace = namespace)
-    makeRequestReturningObjectResource[Scale](req)
+    makeRequestReturningObjectResource[Scale](req, namespace)
   }
 
   @deprecated("use getScale followed by updateScale instead")
@@ -542,7 +542,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
       requestEntity  <- marshal.to[RequestEntity]
       httpRequest    = buildRequest(HttpMethods.PUT, rd, Some(s"${objName}/scale"), namespace = namespace)
           .withEntity(requestEntity.withContentType(MediaTypes.`application/json`))
-      scaledResource <- makeRequestReturningObjectResource[Scale](httpRequest)
+      scaledResource <- makeRequestReturningObjectResource[Scale](httpRequest, namespace)
     } yield scaledResource
   }
 
@@ -564,7 +564,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
       requestEntity <- marshal.to[RequestEntity]
       httpRequest = buildRequest(HttpMethods.PATCH, rd, Some(name), namespace = targetNamespace)
           .withEntity(requestEntity.withContentType(contentType))
-      newOrUpdatedResource <- makeRequestReturningObjectResource[O](httpRequest)
+      newOrUpdatedResource <- makeRequestReturningObjectResource[O](httpRequest, targetNamespace)
     } yield newOrUpdatedResource
   }
 
@@ -572,7 +572,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
   {
     val patchRequestEntity = HttpEntity.Strict(`application/merge-patch+json`, ByteString(patch))
     val httpRequest = buildRequest(HttpMethods.PATCH, rd, Some(obj.name), namespace = namespace).withEntity(patchRequestEntity)
-    makeRequestReturningObjectResource[O](httpRequest)
+    makeRequestReturningObjectResource[O](httpRequest, namespace)
   }
 
   // get API versions supported by the cluster
@@ -582,7 +582,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
     val request = HTTPRequestAuth.addAuth(noAuthReq, requestAuth)
     for {
       response <- invoke(request)
-      apiVersionResource <- toKubernetesResponse[APIVersions](response)(apiVersionsFormatReads, lc)
+      apiVersionResource <- toKubernetesResponse[APIVersions](response, url, None)(apiVersionsFormatReads, lc)
     } yield apiVersionResource.versions
   }
 
@@ -619,12 +619,12 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
       newNamespace, watchContinuouslyRequestTimeout,  watchContinuouslyIdleTimeout,
       watchPoolIdleTimeout, defaultPoolSettings, watchSettings, podLogSettings, sslContext, logConfig, closeHook)
 
-  private[skuber] def toKubernetesResponse[T](response: HttpResponse)(implicit reader: Reads[T], lc: LoggingContext): Future[T] =
+  private[skuber] def toKubernetesResponse[T](response: HttpResponse, resourcePath: String, namespace: Option[String])(implicit reader: Reads[T], lc: LoggingContext): Future[T] =
   {
     val statusOptFut = checkResponseStatus(response)
     statusOptFut flatMap {
       case Some(status) =>
-        throw new K8SException(status)
+        throw new K8SException(status.copy(resourcePath = Some(resourcePath), namespace = namespace))
       case None =>
         try {
           Unmarshal(response).to[T]
@@ -632,7 +632,7 @@ class KubernetesClientImpl private[client] (val requestMaker: (Uri, HttpMethod) 
         catch {
           case ex: Exception =>
             logError("Unable to unmarshal resource from response", ex)
-            throw new K8SException(Status(message = Some("Error unmarshalling resource from response"), details = Some(JsString(ex.getMessage))))
+            throw new K8SException(Status(message = Some("Error unmarshalling resource from response"), details = Some(JsString(ex.getMessage)), resourcePath = Some(resourcePath), namespace = namespace))
         }
     }
   }
