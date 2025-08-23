@@ -45,7 +45,7 @@ val pekkoSlf4j = ("org.apache.pekko" %% "pekko-slf4j" % pekkoVersion).cross(Cros
 val logback = "ch.qos.logback" % "logback-classic" % "1.4.6" % Runtime
 
 // the Json formatters are based on Play Json
-val playJson = "com.typesafe.play" %% "play-json" % "2.10.0-RC7"
+val playJson = "com.typesafe.play" %% "play-json" % "2.10.7"
 val jacksonDatabind = "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5"
 
 val awsJavaSdkCore = "com.amazonaws" % "aws-java-sdk-core" % "1.12.638"
