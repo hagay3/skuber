@@ -50,7 +50,7 @@ Read the [documentation](https://hagay3.github.io/skuber/#/) and join [discord c
 
 ## Features
 - Uses standard `kubeconfig` files for configuration - see the [configuration guide](https://hagay3.github.io/skuber/#/?id=configuration) for details
-- Scala 3.2, 2.13, 2.12 support
+- Scala 3.3, 2.13, 2.12 support
 - [Typed Kubernetes Client](https://hagay3.github.io/skuber/#/?id=basic-imports) for creating, reading, updating, removing, listing and watching resources on a Kubernetes cluster.
 - [Dynamic Kubernetes Client](https://hagay3.github.io/skuber/#/?id=dynamic-kubernetes-client), which allows you to interact with Kubernetes API without strict types.
 - Refreshing EKS tokens [Refresh EKS Token guide](https://hagay3.github.io/skuber/#/?id=refresh-eks-aws-token)
