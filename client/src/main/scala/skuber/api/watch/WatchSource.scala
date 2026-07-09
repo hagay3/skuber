@@ -15,7 +15,7 @@ import scala.util.{Failure, Success}
 private[api] object WatchSource {
   sealed trait StreamElement[O <: ObjectResource] {}
   case class End[O <: ObjectResource]() extends StreamElement[O]
-  case class Start[O <: ObjectResource](resourceVersion: Option[String]) extends StreamElement[O]
+  case class Start[O <: ObjectResource](resourceVersionParam: Option[String]) extends StreamElement[O]
   case class Result[O <: ObjectResource](resourceVersion: String, value: WatchEvent[O]) extends StreamElement[O]
 
   sealed trait StreamState {}
@@ -82,8 +82,10 @@ private[api] object WatchSource {
       val feedbackFlow: Flow[StreamElement[O], (HttpRequest, Start[O]), NotUsed] =
         Flow[StreamElement[O]].scan(StreamContext(None, Waiting)){(cxt, next) =>
           next match {
-            case Start(rv) => StreamContext(rv, Processing)
-            case Result(rv, _) => StreamContext(Some(rv), Processing)
+            case Start(resourceVersionParam) => StreamContext(resourceVersionParam, Processing)
+            case Result(resourceVersionResult, _) =>
+              val resourceVersionFinal = if(options.resourceVersion.isEmpty) None else Some(resourceVersionResult)
+              StreamContext(resourceVersionFinal, Processing)
             case End() => cxt.copy(state = Finished)
           }
         }.filter(_.state == Finished).map { acc =>
